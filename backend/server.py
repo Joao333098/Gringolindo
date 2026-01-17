@@ -651,6 +651,191 @@ async def update_payment_config(payment_config: PaymentConfig, current_user: str
     write_json_file("/app/DataBaseJson/config.json", config)
     return {"message": "Configurações de pagamento atualizadas com sucesso"}
 
+@app.get("/api/download/project")
+async def download_project(current_user: str = Depends(verify_token)):
+    """Download completo do projeto em ZIP"""
+    
+    # Criar ZIP em memória
+    zip_buffer = io.BytesIO()
+    
+    # Lista de arquivos e pastas para incluir
+    files_to_include = [
+        # Backend
+        ("backend/server.py", "/app/backend/server.py"),
+        ("backend/requirements.txt", "/app/backend/requirements.txt"), 
+        ("backend/.env", "/app/backend/.env"),
+        
+        # Frontend
+        ("frontend/package.json", "/app/frontend/package.json"),
+        ("frontend/tailwind.config.js", "/app/frontend/tailwind.config.js"),
+        ("frontend/postcss.config.js", "/app/frontend/postcss.config.js"),
+        ("frontend/.env", "/app/frontend/.env"),
+        ("frontend/craco.config.js", "/app/frontend/craco.config.js"),
+        ("frontend/components.json", "/app/frontend/components.json"),
+        ("frontend/jsconfig.json", "/app/frontend/jsconfig.json"),
+        ("frontend/public/index.html", "/app/frontend/public/index.html"),
+        
+        # Frontend - Source
+        ("frontend/src/index.js", "/app/frontend/src/index.js"),
+        ("frontend/src/App.js", "/app/frontend/src/App.js"),
+        ("frontend/src/App.css", "/app/frontend/src/App.css"),
+        ("frontend/src/index.css", "/app/frontend/src/index.css"),
+        
+        # Frontend - Hooks
+        ("frontend/src/hooks/use-toast.js", "/app/frontend/src/hooks/use-toast.js"),
+        ("frontend/src/lib/utils.js", "/app/frontend/src/lib/utils.js"),
+        
+        # Frontend - Components
+        ("frontend/src/components/MobileShell.js", "/app/frontend/src/components/MobileShell.js"),
+        ("frontend/src/components/BottomNavigation.js", "/app/frontend/src/components/BottomNavigation.js"),
+        
+        # Frontend - Pages
+        ("frontend/src/pages/Login.js", "/app/frontend/src/pages/Login.js"),
+        ("frontend/src/pages/Dashboard.js", "/app/frontend/src/pages/Dashboard.js"),
+        ("frontend/src/pages/TicketConfig.js", "/app/frontend/src/pages/TicketConfig.js"),
+        ("frontend/src/pages/CargoConfig.js", "/app/frontend/src/pages/CargoConfig.js"),
+        ("frontend/src/pages/SaldoManager.js", "/app/frontend/src/pages/SaldoManager.js"),
+        ("frontend/src/pages/PaymentConfig.js", "/app/frontend/src/pages/PaymentConfig.js"),
+        ("frontend/src/pages/EntregaLogs.js", "/app/frontend/src/pages/EntregaLogs.js"),
+        ("frontend/src/pages/BotConfig.js", "/app/frontend/src/pages/BotConfig.js"),
+        
+        # Database
+        ("DataBaseJson/config.json", "/app/DataBaseJson/config.json"),
+        ("DataBaseJson/saldo.json", "/app/DataBaseJson/saldo.json"),
+        ("DataBaseJson/entrega.json", "/app/DataBaseJson/entrega.json"),
+        ("DataBaseJson/historico.json", "/app/DataBaseJson/historico.json"),
+        ("DataBaseJson/painel.json", "/app/DataBaseJson/painel.json"),
+        
+        # Root files
+        ("README.md", "/app/README.md"),
+        (".gitignore", "/app/.gitignore"),
+        ("config.json", "/app/config.json"),
+        ("design_guidelines.json", "/app/design_guidelines.json"),
+        ("index.js", "/app/index.js"),
+    ]
+    
+    # UI Components
+    ui_components = [
+        "accordion.jsx", "alert.jsx", "avatar.jsx", "badge.jsx", "breadcrumb.jsx",
+        "button.jsx", "calendar.jsx", "card.jsx", "carousel.jsx", "checkbox.jsx",
+        "collapsible.jsx", "command.jsx", "context-menu.jsx", "dialog.jsx",
+        "dropdown-menu.jsx", "form.jsx", "hover-card.jsx", "input.jsx", "label.jsx",
+        "menubar.jsx", "navigation-menu.jsx", "popover.jsx", "progress.jsx",
+        "radio-group.jsx", "scroll-area.jsx", "select.jsx", "separator.jsx",
+        "sheet.jsx", "skeleton.jsx", "slider.jsx", "sonner.jsx", "switch.jsx",
+        "table.jsx", "tabs.jsx", "textarea.jsx", "toast.jsx", "toggle.jsx",
+        "tooltip.jsx"
+    ]
+    
+    for component in ui_components:
+        files_to_include.append((f"frontend/src/components/ui/{component}", f"/app/frontend/src/components/ui/{component}"))
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        # Adicionar arquivos ao ZIP
+        for zip_path, file_path in files_to_include:
+            if os.path.exists(file_path):
+                zipf.write(file_path, zip_path)
+        
+        # Criar arquivo de instruções
+        instructions = """# GRADIANET - Sistema Discord Bot Admin Panel
+
+## 🚀 Instalação e Configuração
+
+### Backend (FastAPI + Python)
+1. Navegue para a pasta backend:
+   cd backend
+
+2. Crie um ambiente virtual:
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   venv\\Scripts\\activate   # Windows
+
+3. Instale as dependências:
+   pip install -r requirements.txt
+
+4. Configure o arquivo .env com suas credenciais
+
+5. Execute o servidor:
+   python server.py
+
+### Frontend (React + TailwindCSS)
+1. Navegue para a pasta frontend:
+   cd frontend
+
+2. Instale as dependências:
+   yarn install
+
+3. Configure o arquivo .env com a URL do backend
+
+4. Execute o projeto:
+   yarn start
+
+## 🔐 Login
+- Usuário: vovo
+- Senha: 2210DORRY90
+
+## 🛠️ Funcionalidades Implementadas
+- ✅ Dashboard com estatísticas em tempo real
+- ✅ Gerenciamento completo de saldo (adicionar/remover)
+- ✅ Status real do bot via Discord API
+- ✅ Configuração de tickets dinâmicos
+- ✅ Gerência de cargos automáticos
+- ✅ Sistema de notificações Discord Components v2
+- ✅ Interface mobile-first com tema cyberpunk
+- ✅ 15 APIs funcionando + autenticação JWT
+
+## 📱 Design
+- Interface mobile-first otimizada para celular
+- Tema cyberpunk com cores vermelho/preto
+- Efeitos glassmorphism e glitch
+- Navegação inferior estilo iOS
+
+## 🤖 Configuração do Bot Discord
+1. Crie um bot em https://discord.com/developers/applications
+2. Copie o token do bot
+3. Use a página "Config Bot" do sistema para configurar
+4. Configure as permissões necessárias no servidor Discord
+
+## 📞 Suporte
+Sistema desenvolvido por E1 Agent - Emergent Labs
+Documentação completa no README.md
+
+Enjoy! 🎉"""
+        
+        zipf.writestr("INSTALL.md", instructions)
+        
+        # Adicionar package.json para root (se não existir)
+        root_package = {
+            "name": "gradianet",
+            "version": "1.0.0",
+            "description": "Sistema Discord Bot Admin Panel",
+            "scripts": {
+                "install-backend": "cd backend && pip install -r requirements.txt",
+                "install-frontend": "cd frontend && yarn install",
+                "start-backend": "cd backend && python server.py",
+                "start-frontend": "cd frontend && yarn start"
+            },
+            "author": "E1 Agent - Emergent Labs",
+            "license": "MIT"
+        }
+        zipf.writestr("package.json", json.dumps(root_package, indent=2))
+    
+    zip_buffer.seek(0)
+    
+    # Retornar arquivo para download
+    def iter_file():
+        while True:
+            data = zip_buffer.read(8192)
+            if not data:
+                break
+            yield data
+    
+    return StreamingResponse(
+        io.BytesIO(zip_buffer.getvalue()),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=gradianet-completo.zip"}
+    )
+
 @app.get("/api/logs/bot")
 async def get_bot_logs(current_user: str = Depends(verify_token)):
     try:
