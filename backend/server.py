@@ -18,15 +18,22 @@ from fastapi.responses import StreamingResponse
 import secrets
 import string
 import shutil
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(title="Discord Bot Admin Panel")
 
 security = HTTPBearer()
 
+# Get SITE_URL from env
+SITE_URL = os.getenv("SITE_URL", "http://localhost:8001")
+
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*", SITE_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -986,4 +993,6 @@ Enjoy! 🎉"""
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    port = int(os.getenv("PORT", 8001))
+    print(f"Starting server on port {port} with SITE_URL={SITE_URL}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
