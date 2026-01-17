@@ -1,80 +1,63 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.temp
+/var/log/
 
-# IDE and editors
-.idea/
-.vscode/
-
-# Dependencies
+# Node modules
 node_modules/
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# Testing
-/coverage
-
-# Next.js
-/.next/
-/out/
-next-env.d.ts
-*.tsbuildinfo
-
-# Production builds
-/build
-dist/
-dist
-
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-dump.rdb
-
-# System files
-.DS_Store
-*.pem
 
 # Python
 __pycache__/
-*pyc*
-venv/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
 .venv/
+venv/
+env/
+ENV/
 
-# Development tools
-chainlit.md
-.chainlit
-.ipynb_checkpoints/
-.ac
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Deployment
-.vercel
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Data and databases
-agenthub/agents/youtube/db
+# Build outputs
+build/
+dist/
+.next/
 
-# Archive files and large assets
-**/*.zip
-**/*.tar.gz
-**/*.tar
-**/*.tgz
-*.pack
-*.deb
-*.dylib
+# Environment variables sensíveis
+.env.local
+.env.production.local
 
-# Build caches
-.cache/
+# Backup files
+*.backup
+*.bak
 
-# Mobile development
-android-sdk/ 
+# Screenshots e outputs de teste
+*.png
+*.jpg
+*.jpeg
+/root/.emergent/
+
+# Supervisor logs
+/var/log/supervisor/
+
+# Test reports (manter apenas o mais recente)
+/test_reports/iteration_*.json
