@@ -21,6 +21,8 @@ const MobileShell = ({ children }) => {
         return 'Pagamentos';
       case '/entregas':
         return 'Entregas';
+      case '/bot':
+        return 'Config Bot';
       default:
         return 'Sistema E1';
     }
