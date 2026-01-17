@@ -1,34 +1,157 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Additional custom styles specific to the app */
+
+/* Mobile-first responsive design */
+.mobile-container {
+  max-width: 430px;
+  margin: 0 auto;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 100%;
+    padding: 0 2rem;
+  }
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Loading animations */
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s infinite;
 }
 
-.App-link {
-    color: #61dafb;
+@keyframes dots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  80%, 100% { content: '...'; }
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Bento grid layout */
+.bento-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.bento-item {
+  @apply glass-card rounded-3xl p-4;
+  min-height: 120px;
+}
+
+.bento-item.large {
+  grid-column: span 2;
+}
+
+.bento-item.tall {
+  grid-row: span 2;
+}
+
+/* Navigation styles */
+.nav-item {
+  @apply flex flex-col items-center gap-1 p-3 rounded-2xl transition-all duration-200;
+}
+
+.nav-item.active {
+  @apply bg-cyber-red/20 text-cyber-red;
+}
+
+.nav-item:hover {
+  @apply bg-white/5;
+}
+
+/* Form styles */
+.form-group {
+  @apply space-y-2 mb-4;
+}
+
+.form-label {
+  @apply text-sm font-mono text-text-secondary uppercase tracking-wider;
+}
+
+.form-input {
+  @apply terminal-input w-full rounded-none;
+}
+
+.form-select {
+  @apply bg-void-highlight border border-void-border text-text-primary font-mono rounded-lg px-4 py-3 focus:border-cyber-red outline-none transition-colors;
+}
+
+/* Stats cards */
+.stat-card {
+  @apply glass-card rounded-3xl p-6 text-center;
+}
+
+.stat-value {
+  @apply text-3xl font-unbounded font-bold text-cyber-red mb-2;
+}
+
+.stat-label {
+  @apply text-sm font-mono text-text-secondary uppercase;
+}
+
+/* Alert styles */
+.alert {
+  @apply p-4 rounded-xl border font-mono text-sm;
+}
+
+.alert-success {
+  @apply bg-cyber-green/10 border-cyber-green/30 text-cyber-green;
+}
+
+.alert-error {
+  @apply bg-cyber-red/10 border-cyber-red/30 text-cyber-red;
+}
+
+.alert-warning {
+  @apply bg-cyber-yellow/10 border-cyber-yellow/30 text-cyber-yellow;
+}
+
+/* Log display */
+.log-container {
+  @apply bg-void font-mono text-xs p-4 rounded-lg max-h-96 overflow-y-auto;
+}
+
+.log-line {
+  @apply py-1 border-b border-void-border last:border-0;
+}
+
+.log-error {
+  @apply text-cyber-red;
+}
+
+.log-warning {
+  @apply text-cyber-yellow;
+}
+
+.log-info {
+  @apply text-text-secondary;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .bento-item.large,
+  .bento-item.tall {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
 }
