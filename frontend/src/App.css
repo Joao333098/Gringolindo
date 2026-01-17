@@ -34,10 +34,11 @@
 }
 
 .bento-item {
-  @apply rounded-3xl p-4;
   background: rgba(10, 10, 10, 0.8);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
+  padding: 1rem;
   min-height: 120px;
   transition: border-color 0.3s ease;
 }
@@ -77,18 +78,21 @@
 }
 
 .form-input {
-  @apply terminal-input w-full rounded-none;
+  @apply bg-void-highlight border-b-2 border-void-border focus:border-cyber-red text-text-primary font-mono outline-none transition-colors duration-300 px-4 py-3 w-full rounded-none;
 }
 
 .form-select {
   @apply bg-void-highlight border border-void-border text-text-primary font-mono rounded-lg px-4 py-3 focus:border-cyber-red outline-none transition-colors;
 }
 
+/* Stats cards */
 .stat-card {
-  @apply rounded-3xl p-6 text-center;
   background: rgba(10, 10, 10, 0.8);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  text-align: center;
 }
 
 .stat-value {
