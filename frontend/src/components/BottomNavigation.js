@@ -6,7 +6,8 @@ import {
   Users, 
   DollarSign, 
   Package, 
-  Activity 
+  Activity,
+  Bot
 } from 'lucide-react';
 
 const BottomNavigation = () => {
@@ -17,8 +18,8 @@ const BottomNavigation = () => {
     { path: '/ticket', icon: Settings, label: 'Ticket' },
     { path: '/cargos', icon: Users, label: 'Cargos' },
     { path: '/saldo', icon: DollarSign, label: 'Saldo' },
-    { path: '/payments', icon: Package, label: 'Pagamentos' },
-    { path: '/entregas', icon: Activity, label: 'Entregas' },
+    { path: '/payments', icon: Package, label: 'Pay' },
+    { path: '/bot', icon: Bot, label: 'Bot' },
   ];
   
   return (
