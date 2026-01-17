@@ -60,4 +60,7 @@ dist/
 /var/log/supervisor/
 
 # Test reports (manter apenas o mais recente)
-/test_reports/iteration_*.json
+/test_reports/iteration_*.json-e 
+# Environment files
+*.env
+*.env.*
