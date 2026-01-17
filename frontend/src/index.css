@@ -91,10 +91,6 @@ body::before {
 }
 
 /* Custom input focus */
-.terminal-input {
-  @apply bg-void-highlight border-b-2 border-void-border focus:border-cyber-red text-text-primary font-mono outline-none transition-colors duration-300 px-4 py-3;
-}
-
 .terminal-input::placeholder {
   @apply text-text-dim;
 }
