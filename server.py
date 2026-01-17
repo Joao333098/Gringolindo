@@ -755,9 +755,9 @@ async def download_project(current_user: str = Depends(verify_token)):
     # Lista de arquivos e pastas para incluir (EXPANDIDA)
     files_to_include = [
         # Backend
-        ("backend/server.py", "/app/backend/server.py"),
-        ("backend/requirements.txt", "/app/backend/requirements.txt"), 
-        ("backend/.env", "/app/backend/.env"),
+        ("server.py", "/app/server.py"),
+        ("requirements.txt", "/app/requirements.txt"),
+        ("server.json", "/app/server.json"),
         
         # Frontend - Core
         ("frontend/package.json", "/app/frontend/package.json"),
