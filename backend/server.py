@@ -152,10 +152,21 @@ def get_bot_stats() -> Dict:
     
     stats = config.get("estatisticas", {})
     
-    # Contar usuários com saldo > 0
-    users_with_balance = len([user for user, balance in saldo_data.items() if balance > 0])
+    # Contar usuários com saldo > 0 e calcular total
+    users_with_balance = 0
+    total_balance = 0.0
     total_users = len(saldo_data)
-    total_balance = sum(saldo_data.values())
+    
+    for user, balance in saldo_data.items():
+        try:
+            balance = float(balance)
+        except (ValueError, TypeError):
+            balance = 0.0
+            
+        if balance > 0:
+            users_with_balance += 1
+            
+        total_balance += balance
     
     return {
         "vendas_totais": stats.get("vendas_totais", 0),
