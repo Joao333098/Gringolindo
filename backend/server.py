@@ -53,6 +53,11 @@ class SaldoAdd(BaseModel):
     valor: float
     descricao: Optional[str] = None
 
+class SaldoRemove(BaseModel):
+    user_id: str
+    valor: float
+    motivo: Optional[str] = None
+
 class PaymentConfig(BaseModel):
     mp_token: Optional[str] = None
     sms_api_key: Optional[str] = None
@@ -95,19 +100,70 @@ def write_json_file(filepath: str, data: Dict) -> None:
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+async def get_discord_user_info(user_id: str, bot_token: str) -> Dict:
+    """Busca informações do usuário no Discord incluindo avatar"""
+    try:
+        headers = {
+            'Authorization': f'Bot {bot_token}',
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.get(
+            f'https://discord.com/api/v10/users/{user_id}',
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            user_data = response.json()
+            avatar_hash = user_data.get('avatar')
+            
+            # Construir URL do avatar
+            if avatar_hash:
+                avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png?size=128"
+            else:
+                # Avatar padrão
+                discriminator = user_data.get('discriminator', '0000')
+                default_avatar_id = int(discriminator) % 5
+                avatar_url = f"https://cdn.discordapp.com/embed/avatars/{default_avatar_id}.png"
+            
+            return {
+                'id': user_data.get('id'),
+                'username': user_data.get('username', 'Unknown'),
+                'discriminator': user_data.get('discriminator', '0000'),
+                'global_name': user_data.get('global_name'),
+                'avatar_url': avatar_url
+            }
+    except Exception as e:
+        print(f"Erro ao buscar usuário {user_id}: {e}")
+    
+    return {
+        'id': user_id,
+        'username': 'Usuário Desconhecido',
+        'discriminator': '0000',
+        'global_name': None,
+        'avatar_url': 'https://cdn.discordapp.com/embed/avatars/0.png'
+    }
+
 def get_bot_stats() -> Dict:
     config = read_json_file("/app/DataBaseJson/config.json")
     saldo_data = read_json_file("/app/DataBaseJson/saldo.json")
     historico = read_json_file("/app/DataBaseJson/historico.json")
     
     stats = config.get("estatisticas", {})
+    
+    # Contar usuários com saldo > 0
+    users_with_balance = len([user for user, balance in saldo_data.items() if balance > 0])
     total_users = len(saldo_data)
+    total_balance = sum(saldo_data.values())
     
     return {
         "vendas_totais": stats.get("vendas_totais", 0),
         "faturamento": stats.get("faturamento", 0.0),
         "tickets_criados": stats.get("tickets_criados", 0),
         "usuarios_total": total_users,
+        "usuarios_com_saldo": users_with_balance,
+        "saldo_total_sistema": total_balance,
         "sms_saldo": config.get("sms24h", {}).get("saldo", 0),
         "status": "online"
     }
@@ -138,27 +194,37 @@ async def check_discord_bot_status(token: str) -> Dict:
             )
             
             guild_count = 0
+            total_members = 0
             if guilds_response.status_code == 200:
                 guilds = guilds_response.json()
                 guild_count = len(guilds)
+                
+                # Somar membros de todos os servidores
+                for guild in guilds:
+                    total_members += guild.get('approximate_member_count', 0)
             
             return {
                 'status': 'online',
                 'bot_name': bot_data.get('username', 'Unknown'),
                 'bot_id': bot_data.get('id', ''),
                 'guilds': guild_count,
+                'total_members': total_members,
                 'lastSeen': datetime.now(timezone.utc).isoformat()
             }
         elif response.status_code == 401:
             return {
                 'status': 'error',
                 'message': 'Token inválido ou expirado',
+                'guilds': 0,
+                'total_members': 0,
                 'lastSeen': None
             }
         else:
             return {
                 'status': 'error',
                 'message': f'Erro na API do Discord: {response.status_code}',
+                'guilds': 0,
+                'total_members': 0,
                 'lastSeen': None
             }
             
@@ -166,12 +232,16 @@ async def check_discord_bot_status(token: str) -> Dict:
         return {
             'status': 'error',
             'message': 'Timeout ao conectar com Discord',
+            'guilds': 0,
+            'total_members': 0,
             'lastSeen': None
         }
     except Exception as e:
         return {
             'status': 'error',
             'message': f'Erro de conexão: {str(e)}',
+            'guilds': 0,
+            'total_members': 0,
             'lastSeen': None
         }
 
@@ -227,11 +297,54 @@ async def get_dashboard_stats(current_user: str = Depends(verify_token)):
         bot_status = await check_discord_bot_status(token)
         stats["bot_status"] = bot_status["status"]
         stats["bot_guilds"] = bot_status.get("guilds", 0)
+        stats["total_members"] = bot_status.get("total_members", 0)
     else:
         stats["bot_status"] = "error"
         stats["bot_guilds"] = 0
+        stats["total_members"] = 0
     
     return stats
+
+@app.get("/api/users/with-balance")
+async def get_users_with_balance(current_user: str = Depends(verify_token)):
+    saldo_data = read_json_file("/app/DataBaseJson/saldo.json")
+    config = read_json_file("/app/config.json")
+    bot_token = config.get("token", "")
+    
+    users_with_balance = []
+    
+    # Filtrar apenas usuários com saldo > 0
+    for user_id, balance in saldo_data.items():
+        if balance > 0:
+            # Buscar informações do usuário no Discord
+            if bot_token:
+                user_info = await get_discord_user_info(user_id, bot_token)
+            else:
+                user_info = {
+                    'id': user_id,
+                    'username': 'Token não configurado',
+                    'discriminator': '0000',
+                    'global_name': None,
+                    'avatar_url': 'https://cdn.discordapp.com/embed/avatars/0.png'
+                }
+            
+            users_with_balance.append({
+                'user_id': user_id,
+                'balance': balance,
+                'username': user_info['username'],
+                'discriminator': user_info['discriminator'],
+                'global_name': user_info['global_name'],
+                'avatar_url': user_info['avatar_url']
+            })
+    
+    # Ordenar por saldo (maior primeiro)
+    users_with_balance.sort(key=lambda x: x['balance'], reverse=True)
+    
+    return {
+        'users': users_with_balance[:20],  # Últimos 20
+        'total_users_with_balance': len(users_with_balance),
+        'total_balance': sum([u['balance'] for u in users_with_balance])
+    }
 
 @app.get("/api/bot/status")
 async def get_bot_status(current_user: str = Depends(verify_token)):
@@ -391,7 +504,8 @@ async def adicionar_saldo(saldo_request: SaldoAdd, current_user: str = Depends(v
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "user_id": user_id,
         "valor": valor,
-        "transacao_id": transacao_id
+        "transacao_id": transacao_id,
+        "tipo": "adicao"
     }
     
     entrega_data["entregas"].append(entrega_record)
@@ -399,6 +513,84 @@ async def adicionar_saldo(saldo_request: SaldoAdd, current_user: str = Depends(v
     
     return {
         "message": "Saldo adicionado com sucesso",
+        "novo_saldo": saldo_data[user_id],
+        "transacao_id": transacao_id
+    }
+
+@app.post("/api/saldo/remove")
+async def remover_saldo(saldo_request: SaldoRemove, current_user: str = Depends(verify_token)):
+    saldo_data = read_json_file("/app/DataBaseJson/saldo.json")
+    config = read_json_file("/app/DataBaseJson/config.json")
+    
+    user_id = saldo_request.user_id
+    valor = saldo_request.valor
+    
+    # Verificar se usuário existe
+    if user_id not in saldo_data:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verificar se tem saldo suficiente
+    if saldo_data[user_id] < valor:
+        raise HTTPException(status_code=400, detail="Saldo insuficiente")
+    
+    # Remover saldo
+    saldo_data[user_id] -= valor
+    if saldo_data[user_id] < 0:
+        saldo_data[user_id] = 0
+    
+    write_json_file("/app/DataBaseJson/saldo.json", saldo_data)
+    
+    # Registrar na entrega
+    entrega_data = read_json_file("/app/DataBaseJson/entrega.json")
+    if "entregas" not in entrega_data:
+        entrega_data["entregas"] = []
+    
+    transacao_id = str(uuid.uuid4())
+    entrega_record = {
+        "type": 17,
+        "accent_color": None,
+        "spoiler": False,
+        "components": [
+            {
+                "type": 10,
+                "content": "## ❌ saldo removido"
+            },
+            {
+                "type": 14,
+                "divider": False,
+                "spacing": 2
+            },
+            {
+                "type": 10,
+                "content": f"👤  Usuário: <@{user_id}>\n💸  Valor Removido: R${valor:.2f}\n💰  Saldo Atual: R${saldo_data[user_id]:.2f}\n🔖  Transação: {transacao_id}"
+            },
+            {
+                "type": 14,
+                "divider": True,
+                "spacing": 1
+            },
+            {
+                "type": 10,
+                "content": f"📋  Motivo: {saldo_request.motivo or 'Remoção manual'}\n⚠️  Saldo removido pelo administrador!"
+            },
+            {
+                "type": 10,
+                "content": f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+            }
+        ],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "user_id": user_id,
+        "valor": -valor,  # Negativo para indicar remoção
+        "transacao_id": transacao_id,
+        "tipo": "remocao",
+        "motivo": saldo_request.motivo or "Remoção manual"
+    }
+    
+    entrega_data["entregas"].append(entrega_record)
+    write_json_file("/app/DataBaseJson/entrega.json", entrega_data)
+    
+    return {
+        "message": "Saldo removido com sucesso",
         "novo_saldo": saldo_data[user_id],
         "transacao_id": transacao_id
     }
