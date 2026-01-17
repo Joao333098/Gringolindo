@@ -315,6 +315,12 @@ async def get_users_with_balance(current_user: str = Depends(verify_token)):
     
     # Filtrar apenas usuários com saldo > 0
     for user_id, balance in saldo_data.items():
+        # Converter balance para float se for string
+        try:
+            balance = float(balance)
+        except (ValueError, TypeError):
+            balance = 0.0
+            
         if balance > 0:
             # Buscar informações do usuário no Discord
             if bot_token:
