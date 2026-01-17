@@ -396,6 +396,10 @@ async def login(request: LoginRequest):
 async def verify_auth(current_user: str = Depends(verify_token)):
     return {"valid": True, "user": current_user}
 
+@app.get("/")
+async def root():
+    return {"message": "Discord Bot Admin Panel API is running. Please access the frontend."}
+
 @app.get("/api/dashboard/stats")
 async def get_dashboard_stats(current_user: str = Depends(verify_token)):
     stats = get_bot_stats()
