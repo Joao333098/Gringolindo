@@ -703,6 +703,41 @@ async def get_advanced_analytics(current_user: str = Depends(verify_token)):
 # ROTAS EXISTENTES CONTINUAM...
 # (mantendo todas as rotas originais)
 
+# 9. Configuração de Tickets
+@app.get("/api/tickets/config")
+async def get_ticket_config(current_user: str = Depends(verify_token)):
+    config = read_json_file("/app/DataBaseJson/config.json")
+    return {
+        "tickets": config.get("tickets", {}),
+        "entrega": config.get("entrega", {})
+    }
+
+@app.post("/api/tickets/config")
+async def update_ticket_config(ticket_config: TicketConfig, current_user: str = Depends(verify_token)):
+    config = read_json_file("/app/DataBaseJson/config.json")
+    
+    if "tickets" not in config:
+        config["tickets"] = {}
+    if "entrega" not in config:
+        config["entrega"] = {}
+    
+    config["tickets"]["categoria"] = ticket_config.categoria_id
+    config["tickets"]["logs"] = ticket_config.logs_id
+    config["tickets"]["max_tickets_per_user"] = ticket_config.max_tickets_per_user or 1
+    
+    if ticket_config.entrega_canal_id:
+        config["entrega"]["canal_id"] = ticket_config.entrega_canal_id
+    
+    write_json_file("/app/DataBaseJson/config.json", config)
+    log_action("ticket_config_updated", details={
+        "categoria_id": ticket_config.categoria_id,
+        "logs_id": ticket_config.logs_id,
+        "max_tickets_per_user": ticket_config.max_tickets_per_user,
+        "entrega_canal_id": ticket_config.entrega_canal_id
+    })
+    
+    return {"message": "Configuração de tickets atualizada com sucesso"}
+
 # Rota de download atualizada com novas funcionalidades
 @app.get("/api/download/project")
 async def download_project(current_user: str = Depends(verify_token)):
