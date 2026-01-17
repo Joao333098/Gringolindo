@@ -120,17 +120,25 @@ const Dashboard = () => {
             STATUS DO SISTEMA
           </h3>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-cyber-green rounded-full animate-pulse" />
-            <span className="font-mono text-sm text-cyber-green status-online">
-              OPERACIONAL
+            <div className={`w-3 h-3 rounded-full animate-pulse ${
+              stats?.bot_status === 'online' ? 'bg-cyber-green' : 'bg-cyber-red'
+            }`} />
+            <span className={`font-mono text-sm ${
+              stats?.bot_status === 'online' ? 'text-cyber-green status-online' : 'text-cyber-red'
+            }`}>
+              {stats?.bot_status === 'online' ? 'OPERACIONAL' : 'OFFLINE'}
             </span>
           </div>
         </div>
         
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-cyber-green rounded-full" />
-            <span className="font-mono text-text-secondary">Bot Discord</span>
+            <div className={`w-2 h-2 rounded-full ${
+              stats?.bot_status === 'online' ? 'bg-cyber-green' : 'bg-cyber-red'
+            }`} />
+            <span className="font-mono text-text-secondary">
+              Bot Discord ({stats?.bot_guilds || 0} servers)
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-cyber-green rounded-full" />
@@ -145,6 +153,17 @@ const Dashboard = () => {
             <span className="font-mono text-text-secondary">Database</span>
           </div>
         </div>
+
+        {stats?.bot_status !== 'online' && (
+          <div className="mt-4 p-3 bg-cyber-red/10 border border-cyber-red/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-cyber-red" />
+              <span className="text-sm font-mono text-cyber-red">
+                Bot Discord offline - Verifique a configuração
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Ações Rápidas */}
