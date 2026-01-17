@@ -1,0 +1,14 @@
+{
+  "coupons": [
+    {
+      "codigo": "WELCOME10",
+      "valor": 10.0,
+      "usos_maximos": 100,
+      "usos_atual": 0,
+      "ativo": true,
+      "criado_em": "2026-01-17T19:40:00Z",
+      "expira_em": null,
+      "id": "welcome-coupon-001"
+    }
+  ]
+}

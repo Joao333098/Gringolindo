@@ -1,0 +1,7 @@
+{
+  "manutencao": false,
+  "mensagem_manutencao": "Sistema em manutenção. Retornamos em breve!",
+  "auto_backup": true,
+  "backup_intervalo_horas": 24,
+  "atualizado_em": "2026-01-17T19:40:00Z"
+}
