@@ -95,12 +95,7 @@ body::before {
   @apply text-text-dim;
 }
 
-/* Cyber button */
-.cyber-btn {
-  @apply bg-cyber-red text-white font-unbounded uppercase tracking-widest shadow-lg hover:scale-105 active:scale-95 transition-all duration-200;
-  box-shadow: 0 0 15px rgba(255, 0, 60, 0.5);
-}
-
+/* Cyber button hover effects */
 .cyber-btn:hover {
   background: #D60032;
   box-shadow: 0 0 25px rgba(255, 0, 60, 0.7);
