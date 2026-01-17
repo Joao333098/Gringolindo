@@ -8,6 +8,7 @@ import CargoConfig from './pages/CargoConfig';
 import SaldoManager from './pages/SaldoManager';
 import PaymentConfig from './pages/PaymentConfig';
 import EntregaLogs from './pages/EntregaLogs';
+import BotConfig from './pages/BotConfig';
 import MobileShell from './components/MobileShell';
 import './App.css';
 
@@ -64,6 +65,7 @@ function App() {
               <Route path="/saldo" element={<SaldoManager />} />
               <Route path="/payments" element={<PaymentConfig />} />
               <Route path="/entregas" element={<EntregaLogs />} />
+              <Route path="/bot" element={<BotConfig />} />
             </Routes>
           </MobileShell>
         )}
