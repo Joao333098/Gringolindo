@@ -10,6 +10,8 @@ import jwt
 from datetime import datetime, timedelta, timezone
 import subprocess
 import uuid
+import requests
+import asyncio
 
 app = FastAPI(title="Discord Bot Admin Panel")
 
@@ -33,6 +35,9 @@ JWT_EXPIRATION_HOURS = 24
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+class BotTokenConfig(BaseModel):
+    token: str
 
 class TicketConfig(BaseModel):
     categoria_id: str
@@ -107,6 +112,92 @@ def get_bot_stats() -> Dict:
         "status": "online"
     }
 
+async def check_discord_bot_status(token: str) -> Dict:
+    """Verifica se o bot Discord está realmente online"""
+    try:
+        headers = {
+            'Authorization': f'Bot {token}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Fazer uma requisição para a API do Discord para verificar o bot
+        response = requests.get(
+            'https://discord.com/api/v10/users/@me',
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            bot_data = response.json()
+            
+            # Verificar se o bot está em servidores
+            guilds_response = requests.get(
+                'https://discord.com/api/v10/users/@me/guilds',
+                headers=headers,
+                timeout=10
+            )
+            
+            guild_count = 0
+            if guilds_response.status_code == 200:
+                guilds = guilds_response.json()
+                guild_count = len(guilds)
+            
+            return {
+                'status': 'online',
+                'bot_name': bot_data.get('username', 'Unknown'),
+                'bot_id': bot_data.get('id', ''),
+                'guilds': guild_count,
+                'lastSeen': datetime.now(timezone.utc).isoformat()
+            }
+        elif response.status_code == 401:
+            return {
+                'status': 'error',
+                'message': 'Token inválido ou expirado',
+                'lastSeen': None
+            }
+        else:
+            return {
+                'status': 'error',
+                'message': f'Erro na API do Discord: {response.status_code}',
+                'lastSeen': None
+            }
+            
+    except requests.exceptions.Timeout:
+        return {
+            'status': 'error',
+            'message': 'Timeout ao conectar com Discord',
+            'lastSeen': None
+        }
+    except Exception as e:
+        return {
+            'status': 'error',
+            'message': f'Erro de conexão: {str(e)}',
+            'lastSeen': None
+        }
+
+def restart_discord_bot() -> bool:
+    """Reinicia o processo do bot Discord"""
+    try:
+        # Primeiro, tentar parar o processo atual do bot (se estiver rodando)
+        result = subprocess.run(['pkill', '-f', 'node.*index.js'], capture_output=True)
+        
+        # Aguardar um pouco
+        import time
+        time.sleep(2)
+        
+        # Iniciar o bot novamente em background
+        subprocess.Popen(
+            ['node', 'index.js'],
+            cwd='/app',
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        return True
+    except Exception as e:
+        print(f"Erro ao reiniciar bot: {e}")
+        return False
+
 # Routes
 @app.post("/api/auth/login")
 async def login(request: LoginRequest):
@@ -126,7 +217,75 @@ async def verify_auth(current_user: str = Depends(verify_token)):
 
 @app.get("/api/dashboard/stats")
 async def get_dashboard_stats(current_user: str = Depends(verify_token)):
-    return get_bot_stats()
+    stats = get_bot_stats()
+    
+    # Verificar status real do bot
+    config = read_json_file("/app/config.json")
+    token = config.get("token", "")
+    
+    if token:
+        bot_status = await check_discord_bot_status(token)
+        stats["bot_status"] = bot_status["status"]
+        stats["bot_guilds"] = bot_status.get("guilds", 0)
+    else:
+        stats["bot_status"] = "error"
+        stats["bot_guilds"] = 0
+    
+    return stats
+
+@app.get("/api/bot/status")
+async def get_bot_status(current_user: str = Depends(verify_token)):
+    config = read_json_file("/app/config.json")
+    token = config.get("token", "")
+    
+    if not token:
+        return {
+            "status": "error",
+            "message": "Token do bot não configurado",
+            "lastSeen": None
+        }
+    
+    return await check_discord_bot_status(token)
+
+@app.get("/api/config/bot")
+async def get_bot_config(current_user: str = Depends(verify_token)):
+    config = read_json_file("/app/config.json")
+    token = config.get("token", "")
+    
+    # Mostrar apenas parte do token por segurança
+    display_token = ""
+    if token and len(token) > 20:
+        display_token = token[:20] + "..."
+    
+    return {"token": display_token}
+
+@app.post("/api/config/bot")
+async def update_bot_config(bot_config: BotTokenConfig, current_user: str = Depends(verify_token)):
+    config = read_json_file("/app/config.json")
+    
+    # Validar token básico (deve começar com formato correto)
+    if not bot_config.token or len(bot_config.token) < 50:
+        raise HTTPException(status_code=400, detail="Token inválido")
+    
+    # Testar se o token funciona
+    test_status = await check_discord_bot_status(bot_config.token)
+    if test_status["status"] == "error" and "inválido" in test_status["message"]:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado")
+    
+    # Salvar o novo token
+    config["token"] = bot_config.token
+    write_json_file("/app/config.json", config)
+    
+    return {"message": "Token do bot atualizado com sucesso"}
+
+@app.post("/api/bot/restart")
+async def restart_bot(current_user: str = Depends(verify_token)):
+    success = restart_discord_bot()
+    
+    if success:
+        return {"message": "Bot reiniciado com sucesso"}
+    else:
+        raise HTTPException(status_code=500, detail="Erro ao reiniciar o bot")
 
 @app.get("/api/config/ticket")
 async def get_ticket_config(current_user: str = Depends(verify_token)):
@@ -283,7 +442,7 @@ async def update_payment_config(payment_config: PaymentConfig, current_user: str
 @app.get("/api/logs/bot")
 async def get_bot_logs(current_user: str = Depends(verify_token)):
     try:
-        # Ler logs do supervisor ou arquivo de log do bot
+        # Ler logs do bot Node.js
         result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.err.log'], 
                               capture_output=True, text=True)
         return {"logs": result.stdout.split('\n')}
