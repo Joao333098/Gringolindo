@@ -1,0 +1,8 @@
+npm warn deprecated @discordjs/voice@0.16.1: This version uses deprecated encryption modes. Please use a newer version.
+
+added 65 packages, and audited 66 packages in 3s
+
+14 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities

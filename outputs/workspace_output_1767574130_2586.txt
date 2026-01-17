@@ -1,0 +1,62 @@
+        case 'cancelar_sms':
+            // Lógica de cancelamento de SMS e reembolso
+            const sessaoSMS = sessoesUsuario.get(user.id);
+            if (sessaoSMS?.id_numero) {
+                // Bloquear cancelamentos duplicados enquanto um está em curso
+                if (sessaoSMS.processando_cancelamento) return;
+                
+                // Marcar como processando IMEDIATAMENTE
+                sessoesUsuario.set(user.id, { ...sessaoSMS, processando_cancelamento: true });
+
+                try {
+                    const apiKey = General.get('sms24h.api_key');
+                    const sms24h = new SMS24HHandler(apiKey);
+                    
+                    const idParaCancelar = String(sessaoSMS.id_numero).trim();
+                    console.log(`[CANCELAR] Tentando cancelar ID: ${idParaCancelar}`);
+                    
+                    // Definir status 8 (Cancelar) na API
+                    const resAPI = await sms24h.setStatus(idParaCancelar, 8);
+                    
+                    // SMS24H pode retornar ACCESS_CANCEL, STATUS_CANCEL, ou apenas confirmar o recebimento do comando
+                    const statusSucesso = ['CANCELADO', 'ACCESS_CANCEL', 'EARLY_CANCEL', 'CANCEL', 'STATUS_CANCEL', 'ACCESS_READY'];
+                    const responseStr = String(resAPI).toUpperCase();
+                    
+                    if (statusSucesso.some(s => responseStr.includes(s))) {
+                        // Reembolsar
+                        let currentSaldo = parseFloat(saldo.get(user.id) || 0);
+                        const novoSaldo = (currentSaldo + sessaoSMS.preco).toFixed(2);
+                        saldo.set(user.id, novoSaldo);
+                        
+                        // Atualizar histórico para cancelado
+                        const hist = historico.get(user.id) || [];
+                        const index = hist.findIndex(h => h.id === sessaoSMS.id_numero);
+                        if (index !== -1) {
+                            hist[index].status = 'Cancelado/Reembolsado';
+                            historico.set(user.id, hist);
+                        }
+
+                        // Limpar ID do número e resetar flags
+                        sessoesUsuario.set(user.id, { ...sessaoSMS, id_numero: null, processando_cancelamento: false });
+                        
+                        await interaction.editReply({ 
+                            components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(`✅ **SMS Cancelado com Sucesso!**\n💰 R$ ${sessaoSMS.preco.toFixed(2)} foram estornados ao seu saldo.\n\n**Novo Saldo:** \`R$ ${novoSaldo}\``))],
+                            flags: [MessageFlags.IsComponentsV2]
+                        }).catch(() => {});
+                        
+                        setTimeout(() => {
+                            interaction.editReply(criarContainerMenuPrincipal(user.id)).catch(() => {});
+                        }, 5000);
+                    } else {
+                        sessoesUsuario.set(user.id, { ...sessaoSMS, processando_cancelamento: false });
+                        await interaction.followUp({ content: `⚠️ **Cancelamento Recusado:** \`${resAPI}\`. O número pode já ter expirado ou recebido o código.`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+                    }
+                } catch (e) {
+                    sessoesUsuario.set(user.id, { ...sessaoSMS, processando_cancelamento: false });
+                    console.error("[CANCELAR_SMS] Erro:", e);
+                    await interaction.followUp({ content: '❌ Erro técnico ao processar cancelamento na API.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+                }
+            } else {
+                await interaction.followUp({ content: '❌ Nenhum número ativo encontrado.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
+            break;

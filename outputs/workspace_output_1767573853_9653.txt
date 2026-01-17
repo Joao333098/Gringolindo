@@ -1,0 +1,14 @@
+Eventos/Sistema de Compra/FunctionComprar.js
+Eventos/SistemaDeHandlers/atualizacaoMensagensHandler.js
+Eventos/SistemaDeHandlers/painelAdminHandler.js
+Eventos/SistemaDeHandlers/ticketHandler.js
+Eventos/SistemaDeHandlers/menuSelectionHandler.js
+Eventos/Sistema de Config/ConfigModais.js
+Eventos/Sistema de Config/ConfigTicketDinamico.js
+Eventos/Sistema de Config/ConfigPainel.js
+Eventos/Sistema de Config/ConfigProduto.js
+Eventos/Sistema de Config/Autocomplete.js
+Eventos/Sistema de Config/BotConfig.js
+Eventos/Sistema de Config/ConfigCupom.js
+Eventos/Sistema de Config/PersonalizarBot.js
+Eventos/Sistema de Config/SMSConfig.js

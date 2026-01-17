@@ -1,0 +1,33 @@
+(node:1432) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 interactionCreate listeners added to [Client]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Comando closeall carregado!
+✅ Comando painel carregado!
+✅ Comando close carregado!
+✅ Comando menu carregado!
+✅ Comando perfil carregado!
+🔄 Sincronizando comandos slash...
+[LOGS] VOVO MULTI FUNCAO#9537 Foi iniciado 
+ [LOGS] - Atualmente 2 servidores!
+[LOGS] - Tendo acesso a 49 canais!
+[LOGS] - Contendo 29 usuarios!
+(node:1432) DeprecationWarning: The ready event has been renamed to clientReady to distinguish it from the gateway READY event and will only emit under that name in v15. Please use clientReady instead.
+🧹 Comandos de guilda limpos em: SAFETY FORNECEDORES 2K
+🧹 Comandos de guilda limpos em: KAELI SYSTEM
+(node:1432) Warning: Supplying "ephemeral" for interaction response options is deprecated. Utilize flags instead.
+✅ 5 comandos registrados globalmente!
+🚫 Erro Detectado:
+
+DiscordAPIError[40060]: Interaction has already been acknowledged.
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)
+🚫 Erro Detectado:]
+
+DiscordAPIError[40060]: Interaction has already been acknowledged.
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)

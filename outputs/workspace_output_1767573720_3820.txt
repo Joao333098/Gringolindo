@@ -1,0 +1,31 @@
+    try {
+        await interaction.editReply({ components: [loadingContainer], flags: [MessageFlags.IsComponentsV2] }).catch(() => {});
+    } catch (e) {
+        console.error("Erro ao enviar loading state:", e);
+        // Se falhou o editReply, tentamos followUp se não tiver respondido, mas editReply é o esperado aqui
+    }
+
+    try {
+        if (!apiKey) throw new Error("API Key não configurada.");
+
+        // API Handler
+        const sms24h = new SMS24HHandler(apiKey);
+        
+        console.log(`[COMPRA] Solicitando número para serviço: ${servico.id} (${servico.nome})`);
+        
+        const numero = await sms24h.getNumber(servico.id, 73, 'any'); // Brasil
+
+        // Validação extra do ID do número
+        if (!numero || !numero.id) {
+            throw new Error("A API não retornou um ID de número válido.");
+        }
+
+        // VERIFICAÇÃO CRÍTICA: Antes de descontar saldo, verificar se não criou duplicado
+        const sessaoVerificacao = sessoesUsuario.get(userId);
+        if (sessaoVerificacao?.id_numero) {
+            console.log(`[COMPRA] DUPLICAÇÃO DETECTADA! Já existe número ${sessaoVerificacao.id_numero}. Abortando novo número ${numero.id}`);
+            // Cancelar o número que acabou de criar
+            try {
+                await sms24h.cancelActivation(numero.id);
+            } catch (err) {
+                console.error('[COMPRA] Erro ao cancelar número duplicado:', err);

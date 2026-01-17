@@ -1,0 +1,26 @@
+total 396
+-rw-r--r-- 1 root root     0 Jan  5 01:09 workspace_output_1767575375_6499.txt
+-rw-r--r-- 1 root root    34 Jan  5 01:09 workspace_output_1767575334_6838.txt
+-rw-r--r-- 1 root root   147 Jan  5 01:08 workspace_output_1767575329_394.txt
+-rw-r--r-- 1 root root    34 Jan  5 01:08 workspace_output_1767575287_8169.txt
+---
+  timestamp_compra: 1767574903610
+}
+[COMPRA] Número 14606594 (5531976104026) gerado com sucesso. Saldo debitado: R$ 0.12
+🚫 Erro Detectado:
+
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)
+🚫 Erro Detectado:]
+
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)
+[MONITORAMENTO] Mensagem recebida: Clico em adiciona saldo nao acontece nada

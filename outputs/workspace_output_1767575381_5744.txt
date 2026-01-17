@@ -1,0 +1,3 @@
+/workspace/outputs/workspace_output_1767574733_8963.txt:        console.log('[DEPÓSITO] Iniciando processo de depósito para usuário:', user.id);
+/workspace/outputs/workspace_output_1767574733_8963.txt:        console.log('[DEPÓSITO] Valor informado:', valor);
+/workspace/outputs/workspace_output_1767574733_8963.txt:            console.log('[DEPÓSITO] Valor inválido');

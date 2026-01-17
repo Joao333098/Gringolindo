@@ -1,0 +1,4 @@
+135:                new ButtonBuilder().setCustomId('fechar_ticket').setLabel('Fechar Ticket').setStyle(ButtonStyle.Danger)
+464:        case 'fechar_ticket':
+519:        case 'cancelar_sms':
+990:                    new ButtonBuilder().setCustomId('cancelar_sms').setLabel('Cancelar/Reembolso').setStyle(ButtonStyle.Danger)

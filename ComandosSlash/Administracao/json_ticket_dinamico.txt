@@ -1,0 +1,8 @@
+```json
+{
+  "categoria": "ID_DA_CATEGORIA",
+  "logs": "ID_DO_CANAL_LOGS",
+  "canal_abrir_ticket": "ID_DO_CANAL",
+  "mensagem_abrir_ticket": "ID_DA_MENSAGEM"
+}
+```

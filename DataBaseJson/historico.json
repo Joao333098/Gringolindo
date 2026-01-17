@@ -1,0 +1,53 @@
+{
+    "1319865698855551037": [
+        {
+            "plataforma": "apple",
+            "valor": 0.12,
+            "numero": "5531933042845",
+            "status": "Cancelado/Reembolsado",
+            "timestamp": 1767573973600,
+            "id": "14604353"
+        },
+        {
+            "plataforma": "apple",
+            "valor": 0.12,
+            "numero": "5521920479562",
+            "status": "Cancelado/Reembolsado",
+            "timestamp": 1767574212614,
+            "id": "14604943"
+        },
+        {
+            "plataforma": "Discord",
+            "valor": 0.12,
+            "numero": "5531976104026",
+            "status": "Concluído",
+            "timestamp": 1767574904175,
+            "id": "14606594",
+            "codigo": "152000"
+        },
+        {
+            "plataforma": "apple",
+            "valor": 0.12,
+            "numero": "5585933001734",
+            "status": "Cancelado/Reembolsado",
+            "timestamp": 1767576292107,
+            "id": "14609935"
+        },
+        {
+            "plataforma": "apple",
+            "valor": 0.12,
+            "numero": "5594976047075",
+            "status": "Cancelado/Reembolsado",
+            "timestamp": 1767576361466,
+            "id": "14610065"
+        },
+        {
+            "plataforma": "apple",
+            "valor": 0.12,
+            "numero": "5521920396110",
+            "status": "Cancelado/Reembolsado",
+            "timestamp": 1767576399079,
+            "id": "14610096"
+        }
+    ]
+}

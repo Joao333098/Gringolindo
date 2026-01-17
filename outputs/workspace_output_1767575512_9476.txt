@@ -1,0 +1,6 @@
+🚫 Erro Detectado:
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+🚫 Erro Detectado:]
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)

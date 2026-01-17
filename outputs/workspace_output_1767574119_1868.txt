@@ -1,0 +1,36 @@
+            const status = await mp.aguardarPagamento(pagamento.id);
+
+            if (status.status === 'approved') {
+                const s = sessoesUsuario.get(user.id);
+                if (s?.timeout) clearTimeout(s.timeout);
+                
+                let currentSaldo = parseFloat(saldo.get(user.id) || 0);
+                const novoSaldo = (currentSaldo + valor).toFixed(2);
+                saldo.set(user.id, novoSaldo);
+
+                // Registrar no histórico
+                const historicoAtual = historico.get(user.id) || [];
+                historicoAtual.push({
+                    tipo: 'deposito',
+                    valor: valor,
+                    metodo: 'PIX',
+                    status: 'Concluído',
+                    timestamp: Date.now()
+                });
+                historico.set(user.id, historicoAtual);
+
+                // Retornar ao menu principal após aprovação, limpando tudo
+                const menuPrincipal = criarContainerMenuPrincipal(user.id);
+                try {
+                    await interaction.editReply(menuPrincipal);
+                    await channel.send({ content: `<a:953908880642043954:1457207680748880101> **Pagamento Confirmado!** R$ ${valor.toFixed(2)} foram adicionados ao seu saldo.` });
+                } catch (e) {
+                    await channel.send(menuPrincipal);
+                }
+            }
+
+        } catch (error) {
+            console.error(error);
+            const errorMsg = error.message.length > 100 ? error.message.substring(0, 100) + "..." : error.message;
+            await interaction.editReply({ content: `❌ Erro ao gerar pagamento: ${errorMsg}`, components: [] }).catch(() => {});
+        }

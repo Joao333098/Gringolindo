@@ -1,0 +1,85 @@
+    if (customId === 'modal_deposito_pix') {
+        const valorRaw = fields.getTextInputValue('valor_deposito').replace(',', '.');
+        const valor = parseFloat(valorRaw);
+
+        if (isNaN(valor) || valor < 1) {
+            // Modais precisam de resposta direta ou deferida
+            if (!interaction.replied && !interaction.deferred) {
+                return interaction.reply({ content: '❌ Valor inválido. O mínimo é R$ 1,00.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
+            return;
+        }
+
+        // Estado de "Aguarde..."
+        const loadingContainer = new ContainerBuilder()
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ⏳ Aguarde...\nEstamos gerando seu PIX de **R$ ${valor.toFixed(2)}**`));
+        
+        try {
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ components: [loadingContainer], flags: [MessageFlags.IsComponentsV2] }).catch(() => {});
+            }
+        } catch (e) {}
+
+        try {
+            const mpToken = General.get('mercadopago.access_token');
+            const MercadoPagoHandler = require('../../Handler/mercadopago');
+            const mp = new MercadoPagoHandler(mpToken);
+
+            const pagamento = await mp.criarPagamentoPix(valor, `Depósito de Saldo - ${user.username}`);
+            
+            // Timer para deletar PIX e mensagem após 5 minutos
+            const pixTimeout = setTimeout(async () => {
+                const s = sessoesUsuario.get(user.id);
+                if (s && s.pix_id === pagamento.id) {
+                    sessoesUsuario.delete(user.id);
+                    try {
+                        await interaction.editReply(criarContainerMenuPrincipal(user.id)).catch(() => {});
+                        await channel.send("⚠️ Seu PIX expirou e foi cancelado.").then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+                    } catch (e) {}
+                }
+            }, 5 * 60 * 1000);
+
+            // Tentar gerar o container, mas remover a imagem se o base64 estiver vindo errado ou não suportado no V2
+            // Discord V2 pode ter limitações com data URIs em MediaGallery dependendo da versão
+            const pixContainer = new ContainerBuilder();
+
+            // 1. Título e Valor PRIMEIRO
+            pixContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(
+                `## <:pix:1457209865675083836> Depósito PIX\n` +
+                `### Valor: \`R$ ${valor.toFixed(2)}\``
+            ));
+
+            // 2. Imagem do QR Code logo abaixo do título/valor
+            if (pagamento.qr_code_base64) {
+                 try {
+                    pixContainer.addMediaGalleryComponents(
+                        new MediaGalleryBuilder().addItems(
+                            new MediaGalleryItemBuilder().setURL(`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pagamento.qr_code)}`)
+                        )
+                    );
+                 } catch (e) {}
+            }
+
+            // 3. Copia e Cola e Botão
+            pixContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(
+                `**Copia e Cola:**\n` +
+                `-# \`${pagamento.qr_code}\`\n\n` +
+                `Clique no botão abaixo para copiar:`
+            ))
+            .addSeparatorComponents(new SeparatorBuilder().setDivider(true))
+            .addActionRowComponents(new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId(`copiar_pix_${pagamento.id}`).setLabel('Copiar Código').setStyle(ButtonStyle.Primary).setEmoji('1269507096282533969')
+            ));
+
+            // Salvar o código para o botão de copiar funcionar
+            sessoesUsuario.set(user.id, { ...sessoesUsuario.get(user.id), pix_code: pagamento.qr_code, pix_id: pagamento.id, timeout: pixTimeout });
+
+            await interaction.editReply({ components: [pixContainer], flags: [MessageFlags.IsComponentsV2] });
+
+            // Monitorar pagamento em background com verificação extra
+            const status = await mp.aguardarPagamento(pagamento.id);
+
+            if (status.status === 'approved') {
+                const s = sessoesUsuario.get(user.id);
+                if (s?.timeout) clearTimeout(s.timeout);
+                

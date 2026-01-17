@@ -1,0 +1,30 @@
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ModalBuilder, TextInputBuilder, StringSelectMenuBuilder, ChannelSelectMenuBuilder, ChannelType, PermissionFlagsBits, ComponentType, AttachmentBuilder } = require("discord.js")
+const { perms, General, emoji, produto, tema, rankproduto, carrinhos, rank, cupons, rendimentos, saldo, painel } = require("../../DataBaseJson");
+const axios = require('axios');
+const fs = require('fs')
+const coodolwn = new Map()
+const moment = require('moment');
+const { MercadoPagoConfig, Payment, Preference, MerchantOrder, PaymentRefund } = require('mercadopago');
+
+module.exports = {
+  name: "interactionCreate",
+    
+  run: async(interaction, client) => {
+    // Verificar se a interação já foi respondida
+    if (interaction.replied || interaction.deferred) {
+      return;
+    }
+
+    if (interaction.isButton()) {
+      
+      if (interaction.customId.endsWith("_comprar")) {
+        const now = Date.now();
+        attproduto()
+        if (coodolwn.has(interaction.user.id)) {
+          const tempofalta = 5000 - (now - coodolwn.get(interaction.user.id))
+          return interaction.reply({ content: `Aguarde ${Number(tempofalta / 1000).toFixed(0)} segundos para interagir novamente.`, ephemeral: true })
+        }
+        coodolwn.set(interaction.user.id, now)
+        setTimeout(() => {
+          coodolwn.delete(interaction.user.id)
+        }, 5000)

@@ -1,0 +1,26 @@
+
+// ==================================================================
+// HANDLER PRINCIPAL
+// ==================================================================
+
+module.exports = {
+    name: 'interactionCreate',
+    run: async (interaction, client) => {
+        try {
+            // Verificar se a interação já foi processada pelo handler admin
+            if (interaction.__adminHandlerProcessed) {
+                return;
+            }
+
+            if (interaction.isButton()) await handleBotao(interaction, client);
+            else if (interaction.isStringSelectMenu()) await handleSelect(interaction, client);
+            else if (interaction.isModalSubmit()) await handleModal(interaction, client);
+        } catch (error) {
+            console.error('Erro no handler:', error);
+        }
+    }
+};
+
+// ==================================================================
+// LÓGICA DOS EVENTOS
+// ==================================================================

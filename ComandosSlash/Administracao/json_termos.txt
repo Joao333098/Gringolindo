@@ -1,0 +1,15 @@
+```json
+{
+  "titulo": "📋 Olá, {userId}!\n## Leia os Termos de Uso",
+  "regras": [
+    "**Regras do Sistema:**\n",
+    "-# 1. O número é único e exclusivo para você.\n",
+    "-# 2. Utilize apenas para fins legais.\n",
+    "-# 3. O código SMS deve ser usado dentro de 10 minutos.\n\n",
+    "**⚠️ Garantia:**\n",
+    "-# Se o código não chegar, o saldo é estornado automaticamente."
+  ],
+  "botao_aceitar": "Concordar e Continuar",
+  "botao_cancelar": "Cancelar"
+}
+```

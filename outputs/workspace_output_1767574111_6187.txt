@@ -1,0 +1,7 @@
+127:                            .setValue('menu_depositar')
+277:            new ButtonBuilder().setCustomId('menu_depositar').setLabel('Recarregar').setStyle(ButtonStyle.Primary).setEmoji('1457208747951784007'),
+401:        case 'menu_depositar':
+415:                .setCustomId('modal_deposito_pix')
+692:        } else if (value === 'menu_depositar') {
+699:                .setCustomId('modal_deposito_pix')
+746:    if (customId === 'modal_deposito_pix') {

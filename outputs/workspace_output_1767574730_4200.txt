@@ -1,0 +1,71 @@
+function criarContainerCatalogo(pagina = 0) {
+    const inicio = pagina * ITENS_POR_PAGINA;
+    const fim = inicio + ITENS_POR_PAGINA;
+    const servicosPagina = SERVICOS.slice(inicio, fim);
+    const totalPaginas = Math.ceil(SERVICOS.length / ITENS_POR_PAGINA);
+
+    // Constrói as opções do menu
+    const opcoes = servicosPagina.map(s => 
+        new StringSelectMenuOptionBuilder()
+            .setLabel(s.nome)
+            .setDescription(`Preço: R$ ${s.preco_final.toFixed(2)} | Estoque: ${s.qtd_disp}`)
+            .setValue(`sms_${s.id}`) // ID para identificarmos depois
+            .setEmoji('1457212395465211925')
+    );
+
+    if (opcoes.length === 0) {
+        opcoes.push(new StringSelectMenuOptionBuilder().setLabel('Vazio').setValue('null').setDescription('Nenhum serviço aqui.'));
+    }
+
+    const container = new ContainerBuilder()
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                `## <:celular:1457212395465211925> Catálogo de Serviços (Pág ${pagina + 1}/${totalPaginas})\n` +
+                `-# Escolha abaixo a plataforma que deseja receber o SMS. Cada serviço possui um estoque e preço específico.`
+            )
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`Selecione o serviço desejado na lista abaixo:`)
+        )
+        // O SELECT MENU FICA AQUI
+        .addActionRowComponents(
+            new ActionRowBuilder().addComponents(
+                new StringSelectMenuBuilder()
+                    .setCustomId('select_servico')
+                    .setPlaceholder('🔻 Clique para selecionar um serviço...')
+                    .addOptions(opcoes)
+            )
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+        )
+        // Botões de Navegação
+        .addActionRowComponents(
+            new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('pag_ant').setLabel('Anterior').setStyle(ButtonStyle.Secondary).setDisabled(pagina === 0).setEmoji('1457213423321350166'),
+                new ButtonBuilder().setCustomId('voltar_menu').setLabel('Menu Inicial').setStyle(ButtonStyle.Danger).setEmoji('1457178257823891536'),
+                new ButtonBuilder().setCustomId('pag_prox').setLabel('Próximo').setStyle(ButtonStyle.Secondary).setDisabled(pagina >= totalPaginas - 1).setEmoji('1457213225652322367')
+            )
+        );
+
+    return { components: [container], flags: [MessageFlags.IsComponentsV2] };
+}
+
+/**
+ * ESTÁGIO 4: Confirmação
+ */
+function criarContainerConfirmacao(servico, saldoUsuario) {
+    const preco = servico.preco_final;
+    const podeComprar = saldoUsuario >= preco;
+    const saldoFinal = (saldoUsuario - preco).toFixed(2);
+
+    const container = new ContainerBuilder()
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`## <:Pngtreeshoppingcartlineiconvecto:1269507078976966706> Confirmar Pedido: ${servico.nome}`)
+        )
+        .addSeparatorComponents(new SeparatorBuilder().setDivider(true))
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(

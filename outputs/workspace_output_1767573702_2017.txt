@@ -1,0 +1,5 @@
+469:                        saldo.set(user.id, novoSaldo);
+484:                        saldo.set(user.id, novoSaldo);
+525:                        saldo.set(user.id, novoSaldo);
+811:                saldo.set(user.id, novoSaldo);
+917:        saldo.set(userId, (currentSaldo - preco).toFixed(2));

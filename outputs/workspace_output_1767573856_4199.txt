@@ -1,0 +1,20 @@
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ModalBuilder, TextInputBuilder, ChannelSelectMenuBuilder, RoleSelectMenuBuilder, ChannelType, UserSelectMenuBuilder, StringSelectMenuBuilder } = require("discord.js")
+const { perms, General, emoji } = require("../../DataBaseJson")
+const axios = require('axios');
+const timer = {};
+const moment = require('moment');
+
+module.exports = {
+   name: "interactionCreate",
+   run: async(interaction, client) => {
+       // Verificar se a interação já foi respondida
+       if (interaction.replied || interaction.deferred) {
+           return;
+       }
+       
+       if (interaction.isButton()) {
+          
+          if (interaction.customId.endsWith("_vendasonoff")) {
+             interaction.deferUpdate()
+             if (interaction.user.id != interaction.customId.split("_")[0]) return
+             

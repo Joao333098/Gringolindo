@@ -1,0 +1,74 @@
+Aqui está um prompt altamente detalhado e técnico que você pode enviar para uma IA (como o ChatGPT, Claude ou para o seu próprio agente de codificação).
+Este prompt foi desenhado para obrigar a IA a usar exatamente a lógica de axios e Type 17 que você forneceu, em vez de tentar usar os métodos padrões do discord.js que não suportam esses layouts personalizados.
+Copie e cole o texto abaixo:
+Contexto:
+Estou desenvolvendo um bot de Discord usando Node.js e a biblioteca discord.js (v14). Preciso criar uma funcionalidade no comando /painel para gerenciar mensagens de tickets e menus.
+O Problema:
+Muitas IAs tentam usar o método padrão .edit() do discord.js, mas eu preciso usar uma construção de payload específica (Type 17 - Rich Container) enviada via requisição direta à API (Axios), pois estou injetando componentes JSON complexos (layout de loja/ticket).
+Requisitos da Tarefa:
+ * Estrutura do Painel:
+   * Ao dar o comando /painel, deve aparecer um menu com botões.
+   * Um desses botões será "Atualizar Mensagem".
+   * Outra funcionalidade é que os textos de "Termos" devem ser puxados de um arquivo .json separado (editável), para que eu não precise mexer no código para alterar os termos de uso.
+ * Lógica do Botão "Atualizar Mensagem" (CRÍTICO):
+   * Ao clicar no botão, o bot deve perguntar: "Envie o JSON dos componentes".
+   * O bot deve abrir um MessageCollector para aguardar minha resposta.
+   * Ao receber o JSON, o bot deve aplicar exatamente a lógica de tratamento e envio via axios que descreverei abaixo.
+ * Regras de Tratamento do JSON:
+   * O código deve limpar formatações markdown (```json).
+   * Correção de Imagens: O script deve percorrer o JSON recebido. Se encontrar um componente type: 12 (Imagem) onde a url está vazia ou nula, ele deve remover esse item do array para evitar erro 400 da API.
+   * Payload Type 17: O JSON corrigido deve ser encapsulado dentro de um objeto com type: 17 (Rich Container), accent_color, etc.
+Código de Referência (USE ESTA LÓGICA PARA O UPDATE):
+Você deve adaptar o trecho abaixo (que usa !t) para funcionar dentro do evento do botão (interaction) do meu painel. Mantenha a parte do axios.patch e a lógica de limpeza:
+// --- Lógica de Referência ---
+// Captura o input do usuário (collected.content)
+let cleanContent = collected.content.replace(/```json|```/g, '').trim();
+let userComponents = JSON.parse(cleanContent);
+
+// CORREÇÃO AUTOMÁTICA DE ERROS (Type 12)
+userComponents = userComponents.map(comp => {
+    if (comp.type === 12 && comp.items) {
+        comp.items = comp.items.filter(item => item.media && item.media.url && item.media.url.length > 5);
+    }
+    return comp;
+});
+
+// Montagem do Payload Type 17
+const finalPayload = {
+    content: null, 
+    components: [
+        {
+            type: 17, // Rich Container (Importante!)
+            accent_color: 9225410, 
+            spoiler: false,
+            components: userComponents // JSON do usuário entra aqui
+        }
+    ]
+};
+
+// Envio via AXIOS (Não usar interaction.editReply para isso)
+await axios.patch(
+    `https://discord.com/api/v10/channels/${canal_id}/messages/${mensagem_id}`,
+    finalPayload,
+    {
+        headers: {
+            'Authorization': `Bot ${SEU_TOKEN}`,
+            'Content-Type': 'application/json'
+        }
+    }
+);
+
+Exemplo de Input que usarei:
+Eu enviarei um JSON assim:
+[
+    { "type": 12, "items": [{ "media": { "url": "" }, "description": null }] },
+    { "type": 14, "divider": true, "spacing": 1 },
+    { "type": 1, "components": [{ "type": 2, "style": 3, "label": "Comprar", "custom_id": "buy" }] }
+]
+
+O que eu quero que você gere:
+Gere o código completo do comando /painel, incluindo a criação do botão, o coletor (collector) da mensagem e a integração dessa lógica de axios para atualizar a mensagem alvo com o layout avançado.
+Por que esse prompt funciona melhor?
+ * Isolamento da Lógica: Eu destaquei explicitamente que a parte do axios e Type 17 é CRÍTICA. A maioria das IAs ignora isso e tenta fazer do jeito "padrão", o que quebraria seu layout personalizado.
+ * Tratamento de Erro Específico: Incluí a instrução sobre o Type 12 (imagens vazias). Isso garante que, se você colar o JSON com URL vazia (como no seu exemplo), o bot não vai travar.
+ * Contexto do Botão: Deixei claro que você quer sair de um comando de texto (!t) para um fluxo de botão (interaction), que é mais moderno e o que você pediu.

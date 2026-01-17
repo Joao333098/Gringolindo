@@ -1,0 +1,20 @@
+const { perms, emoji } = require('../../DataBaseJson');
+
+const painelFunctions = require('../../ComandosSlash/Administracao/painel.js');
+
+module.exports = {
+    name: 'interactionCreate',
+    run: async (interaction, client) => {
+        if (interaction.replied || interaction.deferred) {
+            return;
+        }
+
+        // Processar menu de seleção de tipo de mensagem
+        if (interaction.isStringSelectMenu() && interaction.customId === 'selecionar_tipo_mensagem') {
+            return await processarSelecaoMensagem(interaction, client);
+        }
+
+        // Processar botão de cancelar atualização
+        if (interaction.isButton() && interaction.customId.startsWith('cancelar_atualizacao_')) {
+            return await processarCancelamento(interaction, client);
+        }

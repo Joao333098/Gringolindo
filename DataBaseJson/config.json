@@ -1,0 +1,31 @@
+{
+    "menu_principal": {
+        "canal": "1456320855155015794",
+        "mensagem_id": "1457435049992654871"
+    },
+    "settings": {
+        "vendas": "ON"
+    },
+    "vendas": "ON",
+    "ticket": {
+        "categoria": "1442998689802092674",
+        "logs": "1442998689802092676"
+    },
+    "tickets": {
+        "categoria": "1442998689802092674",
+        "logs": "1269514936619372616",
+        "canal_msg": "1442998689802092676"
+    },
+    "estatisticas": {
+        "tickets_criados": 7
+    },
+    "sms24h": {
+        "api_key": "0b03c9ad24383ed36c86d05121fc99b2"
+    },
+    "mercadopago": {
+        "access_token": "APP_USR-7543316219491978-122109-4a0440c5b95d0658fa2692176695e226-1473715272"
+    },
+    "mp": {
+        "access_token": "APP_USR-7543316219491978-122109-4a0440c5b95d0658fa2692176695e226-1473715272"
+    }
+}

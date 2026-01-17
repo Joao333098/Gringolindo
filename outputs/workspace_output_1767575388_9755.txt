@@ -1,0 +1,40 @@
+        case 'menu_depositar':
+            const mpToken = General.get('mercadopago.access_token');
+            if (!mpToken) {
+                return interaction.followUp({ content: `${emoji.get('erro') || '❌'} O administrador ainda não configurou o Access Token do Mercado Pago.`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
+
+            // Evitar geração de múltiplos PIX ativos
+            const sessaoExistente = sessoesUsuario.get(user.id);
+            if (sessaoExistente?.pix_id) {
+                return interaction.followUp({ content: '❌ Você já tem um PIX ativo. Por favor, pague ou aguarde o cancelamento automático (5 min).', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
+
+            // Iniciar Modal de Valor
+            const modalDeposito = new ModalBuilder()
+                .setCustomId('modal_deposito_pix')
+                .setTitle('Adicionar Saldo');
+
+            const inputValor = new TextInputBuilder()
+                .setCustomId('valor_deposito')
+                .setLabel('Qual valor deseja depositar? (R$)')
+                .setPlaceholder('Ex: 10.00')
+                .setRequired(true)
+                .setStyle(TextInputStyle.Short);
+
+            modalDeposito.addComponents(new ActionRowBuilder().addComponents(inputValor));
+            await interaction.showModal(modalDeposito).catch(() => {});
+            break;
+
+        case 'voltar_menu':
+        case 'cancelar_compra':
+            await interaction.editReply(criarContainerMenuPrincipal(user.id)).catch(() => {});
+            break;
+
+        case 'pag_ant':
+            mudarPagina(interaction, -1);
+            break;
+        case 'pag_prox':
+            mudarPagina(interaction, 1);
+            break;
+

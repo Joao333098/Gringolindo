@@ -1,0 +1,35 @@
+        case 'confirmar_compra':
+            // Evitar múltiplas compras simultâneas para o mesmo usuário
+            const sessaoAtual = sessoesUsuario.get(user.id);
+            
+            // Verificações de segurança
+            if (sessaoAtual?.processando_compra) {
+                return interaction.followUp({ content: '⚠️ Processando compra anterior, aguarde...', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
+            
+            if (sessaoAtual?.id_numero) {
+                return interaction.followUp({ content: '⚠️ Você já tem um número ativo neste ticket. Cancele ou aguarde o SMS.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
+            
+            // Bloqueio imediato (Atomic-like) com timestamp para evitar duplicações
+            const timestampCompra = Date.now();
+            sessoesUsuario.set(user.id, { 
+                ...sessaoAtual, 
+                processando_compra: true,
+                timestamp_compra: timestampCompra 
+            });
+            processarCompra(interaction, client);
+            break;
+
+        case 'fechar_ticket':
+            // Verificar se há número SMS ativo e fazer reembolso
+            const sessaoTicket = sessoesUsuario.get(user.id);
+            if (sessaoTicket?.id_numero) {
+                // Bloquear múltiplos cancelamentos
+                if (sessaoTicket.processando_cancelamento) {
+                    await interaction.followUp({ content: '⚠️ Já há um processo de cancelamento em andamento.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+                    return;
+                }
+                
+                // Marcar como processando
+                sessoesUsuario.set(user.id, { ...sessaoTicket, processando_cancelamento: true });

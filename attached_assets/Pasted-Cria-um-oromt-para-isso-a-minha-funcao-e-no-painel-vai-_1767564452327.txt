@@ -1,0 +1,143 @@
+Cria um oromt para isso a minha funcao e no /painel vai ter la atualisa mensagem que e para atualiza a mensagem e as mensagem de abrir ticket que e a quando da /menu crisr aparece e s de termos vai ser json aonde vai ser auteraveis
+
+Para os la atualisa como ticket e o menu queria que fosse essa logica aqui mais eles nao conseguem const { Client, GatewayIntentBits } = require('discord.js');
+const axios = require('axios');
+
+// --- SUA CONFIGURAÇÃO ---
+const TOKEN = 'SEU_TOKEN_AQUI'; 
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
+
+client.on('ready', () => {
+    console.log(`✅ Bot logado como ${client.user.tag}`);
+});
+
+client.on('messageCreate', async (message) => {
+    // IGNORA MENSAGENS DE OUTROS BOTS
+    if (message.author.bot) return;
+
+    // COMANDO !t
+    if (message.content === '!t') {
+        
+        // 1. Envia mensagem de instrução
+        const botMsg = await message.channel.send("📝 **Aguardando JSON...**\nCole o código dos componentes agora.");
+
+        // 2. Coletor: Espera sua resposta por 60 segundos
+        const filter = m => m.author.id === message.author.id;
+        const collector = message.channel.createMessageCollector({ filter, max: 1, time: 60000 });
+
+        collector.on('collect', async (collected) => {
+            try {
+                // Limpa formatações de código (```json ... ```)
+                let cleanContent = collected.content.replace(/```json|```/g, '').trim();
+                
+                // Tenta ler o JSON
+                let userComponents = JSON.parse(cleanContent);
+
+                // --- CORREÇÃO AUTOMÁTICA DE ERROS COMUNS ---
+                // Percorre os componentes para remover URLs vazias que quebram o bot
+                userComponents = userComponents.map(comp => {
+                    // Se for Type 12 (Imagem) e a URL estiver vazia, remove o item
+                    if (comp.type === 12 && comp.items) {
+                        comp.items = comp.items.filter(item => item.media && item.media.url && item.media.url.length > 5);
+                    }
+                    return comp;
+                });
+                // ---------------------------------------------
+
+                // Monta o Payload V2 (Type 17)
+                const finalPayload = {
+                    content: null, 
+                    components: [
+                        {
+                            type: 17, // Rich Container
+                            accent_color: 9225410, // Roxo
+                            spoiler: false,
+                            components: userComponents // O JSON corrigido entra aqui
+                        }
+                    ]
+                };
+
+                // Envia para o Discord via API direta
+                await axios.patch(
+                    `https://discord.com/api/v10/channels/${message.channel.id}/messages/${botMsg.id}`,
+                    finalPayload,
+                    {
+                        headers: {
+                            'Authorization': `Bot ${TOKEN}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                message.channel.send("✅ **Interface atualizada!**");
+                // Tenta apagar a mensagem com o código JSON para limpar o chat
+                try { await collected.delete(); } catch {}
+
+            } catch (error) {
+                // LOG DE ERRO DETALHADO
+                if (error.response) {
+                    console.error("❌ O Discord recusou o JSON:", JSON.stringify(error.response.data, null, 2));
+                    message.channel.send(`❌ **Erro na API do Discord:**\n\`${JSON.stringify(error.response.data.errors || error.response.data, null, 2).substring(0, 1900)}\``);
+                } else if (error instanceof SyntaxError) {
+                    message.channel.send("❌ **Erro de JSON:** O código que você colou não é um JSON válido.");
+                } else {
+                    console.error(error);
+                    message.channel.send("❌ Erro desconhecido (veja o console).");
+                }
+            }
+        });
+    }
+});
+
+client.login(TOKEN);
+ ai eu Ex vou clica no botao ai depois vai pedi uma mensagem pedindo para add o json ai eu sdd
+
+[
+    {
+        "type": 12,
+        "items": [
+            {
+                "media": {
+                    "url": ""
+                },
+                "description": null,
+                "spoiler": false
+            }
+        ]
+    },
+    {
+        "type": 14,
+        "divider": true,
+        "spacing": 1
+    },
+    {
+        "type": 14,
+        "divider": true,
+        "spacing": 1
+    },
+    {
+        "type": 1,
+        "components": [
+            {
+                "type": 2,
+                "style": 3,
+                "label": "Adiquirir numero",
+                "emoji": {
+                    "name": "🛒",
+                    "id": null
+                },
+                "disabled": false,
+                "custom_id": "e6a30c48fbd442e6f445d9ce2b245c29"
+            }
+        ]
+    }
+]
+
+E depois manda a mesnagem com o atualizado

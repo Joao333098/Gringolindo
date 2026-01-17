@@ -1,0 +1,589 @@
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
+const { General, perms, emoji } = require('../../DataBaseJson');
+const axios = require('axios');
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('painel')
+        .setDescription('Painel de Administração - Apenas Dono')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    // Expondo as funções auxiliares para serem usadas pelo seu handler global se necessário
+    modalSMS24H,
+    modalPIX,
+    modalMercadoPago,
+    mostrarEstatisticas,
+    mostrarPedidos,
+    modalConfigTicket,
+    editarMenuPrincipal,
+    modalAddSaldo,
+    modalBlacklist,
+    voltarPainel,
+    modalAtualizarMensagens,
+
+    async run(client, interaction) {
+        // 1. Verificar permissões
+        if (!perms.has(interaction.user.id)) {
+            try {
+                return await interaction.reply({
+                    content: `${emoji.erro} Você não tem permissão para usar este comando!`,
+                    ephemeral: true
+                });
+            } catch (e) { return; }
+        }
+
+        // 3. Construção do Painel
+        const embed = new EmbedBuilder()
+            .setTitle(`${emoji.admin} Painel de Administração`)
+            .setDescription('Bem-vindo ao painel administrativo. Selecione uma opção:')
+            .setColor(General.get('color.padrao') || '#090b0c')
+            .setThumbnail(client.user.displayAvatarURL())
+            .setFooter({ text: `${client.user.username} - Admin Panel` })
+            .addFields(
+                { name: '💰 Saldo SMS24H', value: `R$ ${(General.get('sms24h.saldo') || 0).toFixed(2)}`, inline: true },
+                { name: '📊 Vendas Totais', value: `${General.get('estatisticas.vendas_totais') || 0}`, inline: true },
+                { name: '💵 Faturamento', value: `R$ ${(General.get('estatisticas.faturamento') || 0).toFixed(2)}`, inline: true }
+            );
+
+        // Linha 1 - Configurações
+        const row1 = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_config_sms24h')
+                    .setLabel('⚙️ Configurar SMS24H')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('admin_config_pix')
+                    .setLabel('💳 Configurar PIX')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('admin_config_mp')
+                    .setLabel('💵 Configurar Mercado Pago')
+                    .setStyle(ButtonStyle.Secondary)
+            );
+
+        // Linha 2 - Gerenciamento
+        const row2 = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_estatisticas')
+                    .setLabel('📊 Estatísticas')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('admin_pedidos')
+                    .setLabel('🛒 Pedidos')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('admin_config_ticket')
+                    .setLabel('🎫 Configurar Ticket')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('admin_config_ticket_dinamico')
+                    .setLabel('🎯 Ticket Dinâmico')
+                    .setStyle(ButtonStyle.Success)
+            );
+
+        // Linha 3 - Edição
+        const row3 = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_editar_menu')
+                    .setLabel('✏️ Editar Menu Principal')
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId('admin_add_saldo')
+                    .setLabel('💰 Adicionar Saldo')
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId('admin_blacklist')
+                    .setLabel('🚫 Blacklist')
+                    .setStyle(ButtonStyle.Danger)
+            );
+
+        // Linha 4 - Configurações Adicionais
+        const row4 = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_config_ticket_json')
+                    .setLabel('⚙️ Config JSON Ticket')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('admin_config_menu_json')
+                    .setLabel('⚙️ Config JSON Menu')
+                    .setStyle(ButtonStyle.Secondary)
+            );
+
+        // 4. Enviar a resposta
+        try {
+            if (interaction.replied || interaction.deferred) {
+                return await interaction.editReply({
+                    embeds: [embed],
+                    components: [row1, row2, row3, row4]
+                });
+            } else {
+                return await interaction.reply({
+                    embeds: [embed],
+                    components: [row1, row2, row3, row4],
+                    ephemeral: true
+                });
+            }
+        } catch (error) {
+            // Se falhar o reply/editReply por timeout, tentamos followUp ou ignoramos
+            try {
+                if (!interaction.replied && !interaction.deferred) {
+                     // Silencioso
+                } else {
+                    await interaction.followUp({
+                        embeds: [embed],
+                        components: [row1, row2, row3, row4],
+                        ephemeral: true
+                    });
+                }
+            } catch (e) {}
+        }
+    }
+};
+
+// --- Funções Auxiliares ---
+// NOTA: Estas funções devem ser chamadas pelo seu Global Handler ao detectar o customId dos botões.
+// Elas NÃO devem conter 'client.on' internamente, pois isso causa vazamento de memória.
+
+async function modalSMS24H(interaction) {
+    // ATENÇÃO: NÃO use deferReply antes de chamar showModal. Modals só abrem se forem a primeira resposta.
+    const modal = new ModalBuilder()
+        .setCustomId('modal_sms24h')
+        .setTitle('Configurar API SMS24H');
+
+    const apiKey = new TextInputBuilder()
+        .setCustomId('api_key')
+        .setLabel('API Key SMS24H')
+        .setPlaceholder('Cole sua API Key aqui')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    modal.addComponents(new ActionRowBuilder().addComponents(apiKey));
+
+    await interaction.showModal(modal);
+    // A lógica de salvar o que foi digitado no modal deve ficar no seu evento 'interactionCreate' (isModalSubmit)
+}
+
+async function modalPIX(interaction) {
+    const modal = new ModalBuilder()
+        .setCustomId('modal_pix')
+        .setTitle('Configurar Chave PIX');
+
+    const chave = new TextInputBuilder()
+        .setCustomId('chave_pix')
+        .setLabel('Chave PIX')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    const tipo = new TextInputBuilder()
+        .setCustomId('tipo_pix')
+        .setLabel('Tipo (CPF, Email, Telefone, Aleatória)')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    modal.addComponents(
+        new ActionRowBuilder().addComponents(chave),
+        new ActionRowBuilder().addComponents(tipo)
+    );
+
+    await interaction.showModal(modal);
+}
+
+async function modalMercadoPago(interaction) {
+    const modal = new ModalBuilder()
+        .setCustomId('modal_mp')
+        .setTitle('Configurar Mercado Pago');
+
+    const accessToken = new TextInputBuilder()
+        .setCustomId('access_token')
+        .setLabel('Access Token')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Paragraph);
+
+    modal.addComponents(new ActionRowBuilder().addComponents(accessToken));
+
+    await interaction.showModal(modal);
+}
+
+async function mostrarEstatisticas(interaction) {
+    // Como isso vem de um botão, a interação já deve estar deferida ou precisa de update
+    const stats = General.get('estatisticas') || {};
+
+    const embed = new EmbedBuilder()
+        .setTitle(`${emoji.estatisticas} Estatísticas`)
+        .addFields(
+            { name: 'Vendas Totais', value: `${stats.vendas_totais || 0}`, inline: true },
+            { name: 'Faturamento', value: `R$ ${(stats.faturamento || 0).toFixed(2)}`, inline: true },
+            { name: 'Lucro (15%)', value: `R$ ${((stats.faturamento || 0) * 0.15).toFixed(2)}`, inline: true },
+            { name: 'SMS Entregues', value: `${stats.sms_entregues || 0}`, inline: true },
+            { name: 'Tickets Criados', value: `${stats.tickets_criados || 0}`, inline: true },
+            { name: 'Usuarios Ativos', value: `${stats.usuarios_ativos || 0}`, inline: true }
+        )
+        .setColor(General.get('color.padrao') || '#090b0c');
+
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId('admin_voltar_painel')
+            .setLabel('⬅️ Voltar')
+            .setStyle(ButtonStyle.Secondary)
+    );
+
+    // Verifica se pode editar ou se precisa atualizar
+    if (interaction.isButton()) {
+        await interaction.update({ embeds: [embed], components: [row] }).catch(() => {});
+    } else {
+        await interaction.editReply({ embeds: [embed], components: [row] }).catch(() => {});
+    }
+}
+
+async function mostrarPedidos(interaction) {
+    const embed = new EmbedBuilder()
+        .setTitle(`${emoji.carrinho} Pedidos Recentes`)
+        .setDescription('Sistema de pedidos em desenvolvimento.')
+        .setColor(General.get('color.padrao') || '#090b0c');
+
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId('admin_voltar_painel')
+            .setLabel('⬅️ Voltar')
+            .setStyle(ButtonStyle.Secondary)
+    );
+
+    if (interaction.isButton()) {
+        await interaction.update({ embeds: [embed], components: [row] }).catch(() => {});
+    } else {
+        await interaction.editReply({ embeds: [embed], components: [row] }).catch(() => {});
+    }
+}
+
+async function modalConfigTicket(interaction) {
+    // Deferir para evitar timeout antes de mostrar o modal
+    if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate().catch(() => {});
+    }
+
+    const modal = new ModalBuilder()
+        .setCustomId('modal_ticket')
+        .setTitle('Configurar Tickets');
+
+    const categoria = new TextInputBuilder()
+        .setCustomId('categoria')
+        .setLabel('ID da Categoria de Tickets')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    const logs = new TextInputBuilder()
+        .setCustomId('logs')
+        .setLabel('ID do Canal de Logs')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    modal.addComponents(
+        new ActionRowBuilder().addComponents(categoria),
+        new ActionRowBuilder().addComponents(logs)
+    );
+
+    await interaction.showModal(modal).catch(() => {});
+}
+
+async function editarMenuPrincipal(interaction) {
+    const embed = new EmbedBuilder()
+        .setTitle('✏️ Editar Menu Principal')
+        .setDescription('Selecione uma opção para editar:')
+        .setColor(General.get('color.padrao') || '#090b0c');
+
+    const rows = [
+        new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_edit_titulo')
+                    .setLabel('Título')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('admin_edit_descricao')
+                    .setLabel('Descrição')
+                    .setStyle(ButtonStyle.Secondary)
+            ),
+        new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_edit_cor')
+                    .setLabel('Cor')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('admin_voltar_painel')
+                    .setLabel('⬅️ Voltar')
+                    .setStyle(ButtonStyle.Primary)
+            )
+    ];
+
+    if (interaction.isButton()) {
+        await interaction.update({ embeds: [embed], components: rows }).catch(() => {});
+    } else {
+        await interaction.editReply({ embeds: [embed], components: rows }).catch(() => {});
+    }
+}
+
+async function modalAddSaldo(interaction) {
+    const modal = new ModalBuilder()
+        .setCustomId('modal_saldo')
+        .setTitle('Adicionar Saldo');
+
+    const userId = new TextInputBuilder()
+        .setCustomId('user_id')
+        .setLabel('ID do Usuário')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    const valor = new TextInputBuilder()
+        .setCustomId('valor')
+        .setLabel('Valor (R$)')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    modal.addComponents(
+        new ActionRowBuilder().addComponents(userId),
+        new ActionRowBuilder().addComponents(valor)
+    );
+
+    await interaction.showModal(modal);
+}
+
+async function modalBlacklist(interaction) {
+    const modal = new ModalBuilder()
+        .setCustomId('modal_blacklist')
+        .setTitle('Gerenciar Blacklist');
+
+    const userId = new TextInputBuilder()
+        .setCustomId('user_id')
+        .setLabel('ID do Usuário')
+        .setRequired(true)
+        .setStyle(TextInputStyle.Short);
+
+    modal.addComponents(new ActionRowBuilder().addComponents(userId));
+
+    await interaction.showModal(modal);
+}
+
+async function voltarPainel(interaction) {
+    const embed = new EmbedBuilder()
+        .setTitle(`${emoji.admin} Painel de Administração`)
+        .setDescription('Bem-vindo ao painel administrativo. Selecione uma opção:')
+        .setFooter({ text: 'Admin Panel' }) // Pequeno ajuste para evitar undefined se client não for passado
+        .setColor(General.get('color.padrao') || '#090b0c');
+
+        // Adicionar campos de volta para manter consistência
+        const stats = General.get('estatisticas') || {};
+        const smsSaldo = General.get('sms24h.saldo') || 0;
+
+        embed.addFields(
+            { name: '💰 Saldo SMS24H', value: `R$ ${smsSaldo.toFixed(2)}`, inline: true },
+            { name: '📊 Vendas Totais', value: `${stats.vendas_totais || 0}`, inline: true },
+            { name: '💵 Faturamento', value: `R$ ${(stats.faturamento || 0).toFixed(2)}`, inline: true }
+        );
+
+    const row1 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('admin_config_sms24h')
+                .setLabel('⚙️ Configurar SMS24H')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('admin_config_pix')
+                .setLabel('💳 Configurar PIX')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId('admin_config_mp')
+                .setLabel('💵 Configurar Mercado Pago')
+                .setStyle(ButtonStyle.Secondary)
+        );
+
+    const row2 = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_estatisticas')
+                    .setLabel('📊 Estatísticas')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('admin_pedidos')
+                    .setLabel('🛒 Pedidos')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('admin_config_ticket')
+                    .setLabel('🎫 Configurar Ticket')
+                    .setStyle(ButtonStyle.Primary)
+            );
+
+        const row3 = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('admin_editar_menu')
+                    .setLabel('✏️ Editar Menu Principal')
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId('admin_add_saldo')
+                    .setLabel('💰 Adicionar Saldo')
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId('admin_blacklist')
+                    .setLabel('🚫 Blacklist')
+                    .setStyle(ButtonStyle.Danger)
+            );
+
+    const row4 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('admin_atualizar_msg')
+                .setLabel('🔄 Atualizar Mensagens')
+                .setStyle(ButtonStyle.Primary)
+        );
+
+    if (interaction.isButton()) {
+        await interaction.update({ embeds: [embed], components: [row1, row2, row3, row4] }).catch(() => {});
+    } else {
+        await interaction.editReply({ embeds: [embed], components: [row1, row2, row3, row4] }).catch(() => {});
+    }
+}
+
+async function modalAtualizarMensagens(interaction) {
+    // Deferir resposta para permitir tempo de coleta
+    await interaction.deferReply({ ephemeral: true });
+
+    const TOKEN = interaction.client.token;
+    
+    // 1. Envia mensagem de instrução
+    const botMsg = await interaction.followUp({
+        content: "📝 **Aguardando JSON...**\nCole o código dos componentes agora.",
+        ephemeral: false
+    });
+
+    // 2. Coletor: Espera sua resposta por 60 segundos
+    const filter = m => m.author.id === interaction.user.id;
+    const collector = interaction.channel.createMessageCollector({ filter, max: 1, time: 60000 });
+
+    collector.on('collect', async (collected) => {
+        try {
+            // Limpa formatações de código (```json ... ```)
+            let cleanContent = collected.content.replace(/```json|```/g, '').trim();
+            
+            // Tenta ler o JSON
+            let userComponents = JSON.parse(cleanContent);
+
+            // --- CORREÇÃO AUTOMÁTICA DE ERROS COMUNS ---
+            // Percorre os componentes para remover URLs vazias que quebram o bot
+            userComponents = userComponents.map(comp => {
+                // Se for Type 12 (Imagem) e a URL estiver vazia, remove o item
+                if (comp.type === 12 && comp.items) {
+                    comp.items = comp.items.filter(item => item.media && item.media.url && item.media.url.length > 5);
+                }
+                return comp;
+            });
+            // ---------------------------------------------
+
+            // Monta o Payload V2 (Type 17)
+            const finalPayload = {
+                content: null, 
+                components: [
+                    {
+                        type: 17, // Rich Container
+                        accent_color: 9225410, // Roxo
+                        spoiler: false,
+                        components: userComponents // O JSON corrigido entra aqui
+                    }
+                ]
+            };
+
+            // Envia para o Discord via API direta
+            await axios.patch(
+                `https://discord.com/api/v10/channels/${interaction.channel.id}/messages/${botMsg.id}`,
+                finalPayload,
+                {
+                    headers: {
+                        'Authorization': `Bot ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            interaction.followUp({ 
+                content: "✅ **Interface atualizada!**",
+                ephemeral: true 
+            });
+            // Tenta apagar a mensagem com o código JSON para limpar o chat
+            try { await collected.delete(); } catch {}
+
+        } catch (error) {
+            // LOG DE ERRO DETALHADO
+            if (error.response) {
+                console.error("❌ O Discord recusou o JSON:", JSON.stringify(error.response.data, null, 2));
+                interaction.followUp({ 
+                    content: `❌ **Erro na API do Discord:**\n\`${JSON.stringify(error.response.data.errors || error.response.data, null, 2).substring(0, 1900)}\``,
+                    ephemeral: true 
+                });
+            } else if (error instanceof SyntaxError) {
+                interaction.followUp({ 
+                    content: "❌ **Erro de JSON:** O código que você colou não é um JSON válido.",
+                    ephemeral: true 
+                });
+            } else {
+                console.error(error);
+                interaction.followUp({ 
+                    content: "❌ Erro desconhecido (veja o console).",
+                    ephemeral: true 
+                });
+            }
+        }
+    });
+}
+
+// Função auxiliar para atualizar mensagem específica
+async function atualizarMensagemEspecifica(interaction, channelId, messageId, userComponents) {
+    try {
+        const TOKEN = interaction.client.token;
+        
+        // --- CORREÇÃO AUTOMÁTICA DE ERROS COMUNS ---
+        userComponents = userComponents.map(comp => {
+            if (comp.type === 12 && comp.items) {
+                comp.items = comp.items.filter(item => item.media && item.media.url && item.media.url.length > 5);
+            }
+            return comp;
+        });
+
+        const finalPayload = {
+            content: null, 
+            components: [
+                {
+                    type: 17,
+                    accent_color: 9225410,
+                    spoiler: false,
+                    components: userComponents
+                }
+            ]
+        };
+
+        await axios.patch(
+            `https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`,
+            finalPayload,
+            {
+                headers: {
+                    'Authorization': `Bot ${TOKEN}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        return { success: true, message: "✅ **Mensagem atualizada com sucesso!**" };
+    } catch (error) {
+        console.error("Erro ao atualizar mensagem:", error);
+        if (error.response) {
+            return { 
+                success: false, 
+                message: `❌ **Erro na API:** ${JSON.stringify(error.response.data.errors || error.response.data, null, 2).substring(0, 1900)}` 
+            };
+        }
+        return { success: false, message: "❌ **Erro desconhecido ao atualizar mensagem.**" };
+    }
+}

@@ -1,0 +1,5 @@
+190:function criarContainerCatalogo(pagina = 0) {
+226:                    .setCustomId('select_servico')
+398:            await interaction.editReply(criarContainerCatalogo(0)).catch(() => {});
+729:    if (customId === 'select_servico') {
+906:    await interaction.editReply(criarContainerCatalogo(pag)).catch(() => {});

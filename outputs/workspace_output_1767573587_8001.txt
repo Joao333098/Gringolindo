@@ -1,0 +1,149 @@
+Archive:  Arquivo.zip
+   creating: attached_assets/
+  inflating: attached_assets/Painelold_1767564009062.js  
+  inflating: __MACOSX/attached_assets/._Painelold_1767564009062.js  
+  inflating: attached_assets/Pasted-Aqui-est-um-prompt-altamente-detalhado-e-t-cnico-que-vo_1767564436306.txt  
+  inflating: __MACOSX/attached_assets/._Pasted-Aqui-est-um-prompt-altamente-detalhado-e-t-cnico-que-vo_1767564436306.txt  
+  inflating: attached_assets/Pasted-Cria-um-oromt-para-isso-a-minha-funcao-e-no-painel-vai-_1767564452327.txt  
+  inflating: __MACOSX/attached_assets/._Pasted-Cria-um-oromt-para-isso-a-minha-funcao-e-no-painel-vai-_1767564452327.txt  
+   creating: ComandosSlash/
+   creating: ComandosSlash/Administracao/
+   creating: ComandosSlash/Usuarios/
+  inflating: ComandosSlash/Administracao/json_ticket_dinamico.txt  
+  inflating: __MACOSX/ComandosSlash/Administracao/._json_ticket_dinamico.txt  
+  inflating: ComandosSlash/Administracao/painel.js.backup  
+  inflating: __MACOSX/ComandosSlash/Administracao/._painel.js.backup  
+  inflating: ComandosSlash/Administracao/painel.js.backup3  
+  inflating: __MACOSX/ComandosSlash/Administracao/._painel.js.backup3  
+  inflating: ComandosSlash/Administracao/painel.js  
+  inflating: __MACOSX/ComandosSlash/Administracao/._painel.js  
+  inflating: ComandosSlash/Administracao/painel.js.backup2  
+  inflating: __MACOSX/ComandosSlash/Administracao/._painel.js.backup2  
+  inflating: ComandosSlash/Administracao/json_termos.txt  
+  inflating: __MACOSX/ComandosSlash/Administracao/._json_termos.txt  
+  inflating: ComandosSlash/Administracao/closeall.js  
+  inflating: __MACOSX/ComandosSlash/Administracao/._closeall.js  
+  inflating: ComandosSlash/Usuarios/close.js  
+  inflating: __MACOSX/ComandosSlash/Usuarios/._close.js  
+  inflating: ComandosSlash/Usuarios/perfil.js  
+  inflating: __MACOSX/ComandosSlash/Usuarios/._perfil.js  
+  inflating: ComandosSlash/Usuarios/menu.js  
+  inflating: __MACOSX/ComandosSlash/Usuarios/._menu.js  
+  inflating: config.json             
+  inflating: __MACOSX/._config.json  
+   creating: DataBaseJson/
+  inflating: DataBaseJson/tema.json  
+  inflating: __MACOSX/DataBaseJson/._tema.json  
+  inflating: DataBaseJson/emoji.json  
+  inflating: __MACOSX/DataBaseJson/._emoji.json  
+  inflating: DataBaseJson/config.json  
+  inflating: __MACOSX/DataBaseJson/._config.json  
+ extracting: DataBaseJson/historico.json  
+  inflating: __MACOSX/DataBaseJson/._historico.json  
+  inflating: DataBaseJson/rankproduto.json  
+  inflating: __MACOSX/DataBaseJson/._rankproduto.json  
+  inflating: DataBaseJson/outros.json  
+  inflating: __MACOSX/DataBaseJson/._outros.json  
+  inflating: DataBaseJson/cupons.json  
+  inflating: __MACOSX/DataBaseJson/._cupons.json  
+  inflating: DataBaseJson/index.js   
+  inflating: __MACOSX/DataBaseJson/._index.js  
+  inflating: DataBaseJson/saldo.json  
+  inflating: __MACOSX/DataBaseJson/._saldo.json  
+  inflating: DataBaseJson/perms.json  
+  inflating: __MACOSX/DataBaseJson/._perms.json  
+  inflating: DataBaseJson/rendimentos.json  
+  inflating: __MACOSX/DataBaseJson/._rendimentos.json  
+  inflating: DataBaseJson/moder.json  
+  inflating: __MACOSX/DataBaseJson/._moder.json  
+  inflating: DataBaseJson/carrinhos.json  
+  inflating: __MACOSX/DataBaseJson/._carrinhos.json  
+  inflating: DataBaseJson/rank.json  
+  inflating: __MACOSX/DataBaseJson/._rank.json  
+  inflating: DataBaseJson/mensagens.json  
+  inflating: __MACOSX/DataBaseJson/._mensagens.json  
+  inflating: DataBaseJson/painel.json  
+  inflating: __MACOSX/DataBaseJson/._painel.json  
+  inflating: DataBaseJson/produto.json  
+  inflating: __MACOSX/DataBaseJson/._produto.json  
+   creating: Eventos/
+   creating: Eventos/Sistema de Config/
+   creating: Eventos/Ready/
+   creating: Eventos/SistemaDeHandlers/
+   creating: Eventos/Sistema de Compra/
+  inflating: Eventos/Sistema de Config/ConfigTicketDinamico.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._ConfigTicketDinamico.js  
+  inflating: Eventos/Sistema de Config/PersonalizarBot.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._PersonalizarBot.js  
+  inflating: Eventos/Sistema de Config/ConfigProduto.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._ConfigProduto.js  
+  inflating: Eventos/Sistema de Config/Autocomplete.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._Autocomplete.js  
+  inflating: Eventos/Sistema de Config/ConfigPainel.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._ConfigPainel.js  
+  inflating: Eventos/Sistema de Config/ConfigCupom.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._ConfigCupom.js  
+  inflating: Eventos/Sistema de Config/BotConfig.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._BotConfig.js  
+  inflating: Eventos/Sistema de Config/ConfigModais.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._ConfigModais.js  
+  inflating: Eventos/Sistema de Config/SMSConfig.js  
+  inflating: __MACOSX/Eventos/Sistema de Config/._SMSConfig.js  
+  inflating: Eventos/Ready/FunctionReady.js  
+  inflating: __MACOSX/Eventos/Ready/._FunctionReady.js  
+  inflating: Eventos/Ready/mensagemAuto.js  
+  inflating: __MACOSX/Eventos/Ready/._mensagemAuto.js  
+  inflating: Eventos/SistemaDeHandlers/ticketHandler.js.corrompido  
+  inflating: __MACOSX/Eventos/SistemaDeHandlers/._ticketHandler.js.corrompido  
+  inflating: Eventos/SistemaDeHandlers/painelAdminHandler.js  
+  inflating: __MACOSX/Eventos/SistemaDeHandlers/._painelAdminHandler.js  
+  inflating: Eventos/SistemaDeHandlers/atualizacaoMensagensHandler.js  
+  inflating: __MACOSX/Eventos/SistemaDeHandlers/._atualizacaoMensagensHandler.js  
+  inflating: Eventos/SistemaDeHandlers/ticketHandler.js  
+  inflating: __MACOSX/Eventos/SistemaDeHandlers/._ticketHandler.js  
+  inflating: Eventos/SistemaDeHandlers/menuPrincipal.js  
+  inflating: __MACOSX/Eventos/SistemaDeHandlers/._menuPrincipal.js  
+  inflating: Eventos/SistemaDeHandlers/menuSelectionHandler.js  
+  inflating: __MACOSX/Eventos/SistemaDeHandlers/._menuSelectionHandler.js  
+  inflating: Eventos/SistemaDeHandlers/discordMonitorHandler.js  
+  inflating: __MACOSX/Eventos/SistemaDeHandlers/._discordMonitorHandler.js  
+  inflating: Eventos/Sistema de Compra/FunctionComprar.js  
+  inflating: __MACOSX/Eventos/Sistema de Compra/._FunctionComprar.js  
+   creating: Functions/
+  inflating: Functions/botoes.js     
+  inflating: __MACOSX/Functions/._botoes.js  
+   creating: Handler/
+  inflating: Handler/events.js       
+  inflating: __MACOSX/Handler/._events.js  
+  inflating: Handler/mercadopago-webhook.js  
+  inflating: __MACOSX/Handler/._mercadopago-webhook.js  
+  inflating: Handler/emojis.js       
+  inflating: __MACOSX/Handler/._emojis.js  
+  inflating: Handler/functions.js    
+  inflating: __MACOSX/Handler/._functions.js  
+  inflating: Handler/slash.js        
+  inflating: __MACOSX/Handler/._slash.js  
+  inflating: Handler/mercadopago.js  
+  inflating: __MACOSX/Handler/._mercadopago.js  
+  inflating: Handler/sms24h.js       
+  inflating: __MACOSX/Handler/._sms24h.js  
+  inflating: index.js                
+  inflating: __MACOSX/._index.js     
+  inflating: package-lock.json       
+  inflating: __MACOSX/._package-lock.json  
+  inflating: package.json            
+  inflating: __MACOSX/._package.json  
+  inflating: replit.md               
+  inflating: __MACOSX/._replit.md    
+  inflating: RESUMO_CORRECOES_FINAL_V2.md  
+  inflating: __MACOSX/._RESUMO_CORRECOES_FINAL_V2.md  
+  inflating: RESUMO_CORRECOES_FINAL.md  
+  inflating: __MACOSX/._RESUMO_CORRECOES_FINAL.md  
+  inflating: services.json           
+  inflating: __MACOSX/._services.json  
+  inflating: todo_atualizacao.md     
+  inflating: __MACOSX/._todo_atualizacao.md  
+  inflating: TODO_MONITORAMENTO.md   
+  inflating: __MACOSX/._TODO_MONITORAMENTO.md  
+  inflating: todo.md                 
+  inflating: __MACOSX/._todo.md      

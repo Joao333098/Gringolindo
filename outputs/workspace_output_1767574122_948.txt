@@ -1,0 +1,266 @@
+const axios = require('axios');
+
+/**
+ * Módulo de Integração com API SMS24H
+ * Base URL: https://api.sms24h.org/stubs/handler_api
+ */
+class SMS24H {
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+        this.baseUrl = 'https://api.sms24h.org/stubs/handler_api';
+    }
+
+    /**
+     * Consultar saldo da conta
+     */
+    async getBalance() {
+        try {
+            const response = await axios.get(this.baseUrl, {
+                params: {
+                    api_key: this.apiKey,
+                    action: 'getBalance'
+                }
+            });
+            
+            if (response.data.startsWith('ACCESS_BALANCE:')) {
+                return parseFloat(response.data.split(':')[1]);
+            }
+            throw new Error(response.data);
+        } catch (error) {
+            console.error('[SMS24H] Erro ao consultar saldo:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Listar serviços disponíveis
+     */
+    async getServices(country = 73) {
+        try {
+            const response = await axios.get(this.baseUrl, {
+                params: {
+                    api_key: this.apiKey,
+                    action: 'getPrices',
+                    country: country
+                }
+            });
+            
+            // A resposta vem como JSON nested: { country: { service: { price: quantity } } }
+            if (typeof response.data === 'object') {
+                const services = [];
+                const countryData = response.data[country] || {};
+                
+                Object.entries(countryData).forEach(([service, data]) => {
+                    services.push({
+                        id: service,
+                        price: parseFloat(data.price) || 0,
+                        quantity: parseInt(data.quantity) || 0
+                    });
+                });
+                
+                return services;
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('[SMS24H] Erro ao listar serviços:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Solicitar número
+     */
+    async getNumber(service, country = 73, operator = 'any') {
+        try {
+            const response = await axios.get(this.baseUrl, {
+                params: {
+                    api_key: this.apiKey,
+                    action: 'getNumber',
+                    service: service,
+                    country: country,
+                    operator: operator,
+                    forward: 0
+                }
+            });
+
+            if (response.data === 'NO_NUMBERS') {
+                throw new Error('Nenhum número disponível');
+            }
+            
+            if (response.data === 'NO_BALANCE') {
+                throw new Error('Sem saldo na API');
+            }
+            
+            if (response.data === 'WRONG_SERVICE') {
+                throw new Error('Serviço inválido');
+            }
+            
+            if (response.data.startsWith('ACCESS_NUMBER:')) {
+                const parts = response.data.split(':');
+                return {
+                    id: parts[1],
+                    numero: parts[2],
+                    servico: service,
+                    pais: country,
+                    status: 'PENDING'
+                };
+            }
+            
+            throw new Error(response.data);
+        } catch (error) {
+            console.error('[SMS24H] Erro ao solicitar número:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Verificar status do SMS
+     */
+    async getStatus(id) {
+        if (!id) throw new Error('ID do número não fornecido');
+        try {
+            const response = await axios.get(this.baseUrl, {
+                params: {
+                    api_key: this.apiKey,
+                    action: 'getStatus',
+                    id: String(id) // Garantir que o ID seja string
+                }
+            });
+
+            const statusMap = {
+                'STATUS_WAIT_CODE': 'AGUARDANDO',
+                'STATUS_WAIT_RETRY': 'AGUARDANDO_REENVIO',
+                'STATUS_CANCEL': 'CANCELADO',
+                'STATUS_OK': 'RECEBIDO'
+            };
+
+            if (response.data.startsWith('STATUS_OK:')) {
+                const code = response.data.split(':')[1];
+                return {
+                    id: id,
+                    status: 'RECEBIDO',
+                    codigo: code
+                };
+            }
+
+            if (statusMap[response.data]) {
+                return {
+                    id: id,
+                    status: statusMap[response.data],
+                    codigo: null
+                };
+            }
+
+            return {
+                id: id,
+                status: response.data,
+                codigo: null
+            };
+        } catch (error) {
+            console.error('[SMS24H] Erro ao verificar status:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Definir status (cancelar, confirmar, etc)
+     * status: 8 = cancelar, 6 = confirmar, 3 = solicitar outro SMS
+     */
+    async setStatus(id, status) {
+        if (!id) throw new Error('ID do número não fornecido');
+        const idLimpo = String(id).trim();
+        try {
+            const response = await axios.get(this.baseUrl, {
+                params: {
+                    api_key: this.apiKey,
+                    action: 'setStatus',
+                    id: idLimpo, // Garantir que o ID seja string e sem espaços
+                    status: status
+                }
+            });
+
+            // Respostas possíveis: ACCESS_READY, ACCESS_RETRY_GET, ACCESS_ACTIVATION, ACCESS_CANCEL
+            const statusMap = {
+                'ACCESS_CANCEL': 'CANCELADO',
+                'ACCESS_ACTIVATION': 'CONFIRMADO',
+                'ACCESS_READY': 'OK',
+                'ACCESS_RETRY_GET': 'REENVIAR',
+                'EARLY_CANCEL': 'CANCELADO',
+                'CANCEL': 'CANCELADO',
+                'STATUS_CANCEL': 'CANCELADO'
+            };
+
+            const responseData = String(response.data).trim();
+            const mappedStatus = statusMap[responseData] || responseData;
+            
+            // Log para debug
+            console.log(`[SMS24H] setStatus(${id}, ${status}) => ${responseData} (mapeado: ${mappedStatus})`);
+            
+            return mappedStatus;
+        } catch (error) {
+            console.error('[SMS24H] Erro ao definir status:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Verificar status continuamente
+     */
+    async waitForCode(id, maxAttempts = 30, interval = 10) {
+        for (let i = 0; i < maxAttempts; i++) {
+            try {
+                const result = await this.getStatus(id);
+                
+                if (result.status === 'RECEBIDO') {
+                    return result;
+                }
+                
+                if (result.status === 'CANCELADO') {
+                    return result;
+                }
+                
+                // Aguardar 10 segundos
+                await new Promise(resolve => setTimeout(resolve, interval * 1000));
+                
+            } catch (error) {
+                console.error(`[SMS24H] Erro na tentativa ${i + 1}:`, error.message);
+            }
+        }
+        
+        return {
+            id: id,
+            status: 'TIMEOUT',
+            codigo: null
+        };
+    }
+
+    /**
+     * Listar países disponíveis
+     */
+    async getCountries() {
+        try {
+            const response = await axios.get(this.baseUrl, {
+                params: {
+                    api_key: this.apiKey,
+                    action: 'getCountries'
+                }
+            });
+
+            // Response example: { 73: "Brazil", 0: "Russia", ... }
+            if (typeof response.data === 'object') {
+                return Object.entries(response.data).map(([id, name]) => ({
+                    id: id,
+                    name: name
+                }));
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('[SMS24H] Erro ao listar países:', error.message);
+            throw error;
+        }
+    }
+}
+
+module.exports = SMS24H;

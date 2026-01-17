@@ -1,0 +1,87 @@
+(node:2700) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 interactionCreate listeners added to [Client]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Comando close carregado!
+✅ Comando menu carregado!
+✅ Comando perfil carregado!
+✅ Comando closeall carregado!
+✅ Comando painel carregado!
+🔄 Sincronizando comandos slash...
+[LOGS] VOVO MULTI FUNCAO#9537 Foi iniciado 
+ [LOGS] - Atualmente 2 servidores!
+[LOGS] - Tendo acesso a 48 canais!
+[LOGS] - Contendo 29 usuarios!
+(node:2700) DeprecationWarning: The ready event has been renamed to clientReady to distinguish it from the gateway READY event and will only emit under that name in v15. Please use clientReady instead.
+🧹 Comandos de guilda limpos em: SAFETY FORNECEDORES 2K
+🧹 Comandos de guilda limpos em: KAELI SYSTEM
+✅ 5 comandos registrados globalmente!
+(node:2700) Warning: Supplying "ephemeral" for interaction response options is deprecated. Utilize flags instead.
+🚫 Erro Detectado:
+
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)
+🚫 Erro Detectado:]
+
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)
+[SELECT SERVIÇO] Usuário clicou em um serviço
+[SELECT SERVIÇO] Valor selecionado: sms_ds
+[SELECT SERVIÇO] ID do serviço: ds
+[SELECT SERVIÇO] Serviço encontrado: Discord
+[SELECT SERVIÇO] Saldo do usuário: 116.76
+[SELECT SERVIÇO] Indo para tela de confirmação
+[CONFIRMAR COMPRA] Iniciando confirmação
+[CONFIRMAR COMPRA] Flag de processamento ativada
+[COMPRA] Iniciando compra para usuário 1319865698855551037
+[COMPRA] Sessão atual: {
+  estagio: 'confirmacao',
+  dados: {
+    servico: {
+      id: 'ds',
+      nome: 'Discord',
+      qtd_disp: 54577,
+      preco_base: 0.1,
+      preco_final: 0.12
+    }
+  },
+  processando_compra: true,
+  timestamp_compra: 1767574903610
+}
+[COMPRA] Solicitando número para serviço: ds (Discord)
+[COMPRA] Sessão atual antes da API: {
+  estagio: 'confirmacao',
+  dados: {
+    servico: {
+      id: 'ds',
+      nome: 'Discord',
+      qtd_disp: 54577,
+      preco_base: 0.1,
+      preco_final: 0.12
+    }
+  },
+  processando_compra: true,
+  timestamp_compra: 1767574903610
+}
+[COMPRA] Número recebido da API: ID=14606594, Numero=5531976104026
+[COMPRA] Sessão após API: {
+  estagio: 'confirmacao',
+  dados: {
+    servico: {
+      id: 'ds',
+      nome: 'Discord',
+      qtd_disp: 54577,
+      preco_base: 0.1,
+      preco_final: 0.12
+    }
+  },
+  processando_compra: true,
+  timestamp_compra: 1767574903610
+}
+[COMPRA] Número 14606594 (5531976104026) gerado com sucesso. Saldo debitado: R$ 0.12

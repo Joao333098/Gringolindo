@@ -1,0 +1,20 @@
+{
+    "abrir_ticket": {
+        "embeds": [
+            {
+                "title": "🎫 Central de Atendimento",
+                "description": "Selecione uma opção abaixo para iniciar seu atendimento.",
+                "color": 9225410
+            }
+        ]
+    },
+    "termos": {
+        "embeds": [
+            {
+                "title": "📜 Termos de Uso",
+                "description": "Ao utilizar nossos serviços, você concorda com nossos termos.",
+                "color": 9225410
+            }
+        ]
+    }
+}

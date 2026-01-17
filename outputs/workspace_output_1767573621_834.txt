@@ -1,0 +1,9 @@
+{
+  "token": "MTQ1NjMxOTU3MzIyMDM5Mjk5Mw.GslU2I.xPjvLbGZzYAMVkrJM_XqsEsIV-oCrrnQz0aZ_8",
+  "settings": {
+    "vendas": "ON",
+    "default_color": "#5865F2",
+    "pagination_items": 5,
+    "inactivity_timeout": 600000
+  }
+}

@@ -1,0 +1,50 @@
+  processando_compra: true,
+  timestamp_compra: 1767574903610
+}
+[COMPRA] Solicitando número para serviço: ds (Discord)
+[COMPRA] Sessão atual antes da API: {
+  estagio: 'confirmacao',
+  dados: {
+    servico: {
+      id: 'ds',
+      nome: 'Discord',
+      qtd_disp: 54577,
+      preco_base: 0.1,
+      preco_final: 0.12
+    }
+  },
+  processando_compra: true,
+  timestamp_compra: 1767574903610
+}
+[COMPRA] Número recebido da API: ID=14606594, Numero=5531976104026
+[COMPRA] Sessão após API: {
+  estagio: 'confirmacao',
+  dados: {
+    servico: {
+      id: 'ds',
+      nome: 'Discord',
+      qtd_disp: 54577,
+      preco_base: 0.1,
+      preco_final: 0.12
+    }
+  },
+  processando_compra: true,
+  timestamp_compra: 1767574903610
+}
+[COMPRA] Número 14606594 (5531976104026) gerado com sucesso. Saldo debitado: R$ 0.12
+🚫 Erro Detectado:
+
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)
+🚫 Erro Detectado:]
+
+DiscordAPIError[10062]: Unknown interaction
+    at handleErrors (/workspace/node_modules/@discordjs/rest/dist/index.js:762:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async BurstHandler.runRequest (/workspace/node_modules/@discordjs/rest/dist/index.js:866:23)
+    at async _REST.request (/workspace/node_modules/@discordjs/rest/dist/index.js:1307:22)
+    at async ButtonInteraction.reply (/workspace/node_modules/discord.js/src/structures/interfaces/InteractionResponses.js:193:22)

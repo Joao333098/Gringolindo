@@ -1,0 +1,21 @@
+            await interaction.editReply({ components: [pixContainer], flags: [MessageFlags.IsComponentsV2] });
+
+            // Monitorar pagamento em background com verificação extra
+            const status = await mp.aguardarPagamento(pagamento.id);
+
+            if (status.status === 'approved') {
+                const s = sessoesUsuario.get(user.id);
+                if (s?.timeout) clearTimeout(s.timeout);
+                
+                let currentSaldo = parseFloat(saldo.get(user.id) || 0);
+                const novoSaldo = (currentSaldo + valor).toFixed(2);
+                saldo.set(user.id, novoSaldo);
+
+                // Retornar ao menu principal após aprovação, limpando tudo
+                const menuPrincipal = criarContainerMenuPrincipal(user.id);
+                try {
+                    await interaction.editReply(menuPrincipal);
+                    await channel.send({ content: `<a:953908880642043954:1457207680748880101> **Pagamento Confirmado!** R$ ${valor.toFixed(2)} foram adicionados ao seu saldo.` });
+                } catch (e) {
+                    await channel.send(menuPrincipal);
+                }

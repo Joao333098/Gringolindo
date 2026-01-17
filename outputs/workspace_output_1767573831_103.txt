@@ -1,0 +1,21 @@
+
+        if (canal) {
+            if (interaction.deferred || interaction.replied) {
+                return interaction.editReply({ content: `❌ Você já tem um ticket: ${canal}` }).catch(() => {});
+            }
+            return interaction.reply({ content: `❌ Você já tem um ticket: ${canal}`, ephemeral: true }).catch(() => {});
+        } else {
+            ticketsAbertos.delete(userId); // Limpa se o canal não existir mais
+        }
+    }
+
+    // Tenta criar o canal
+    try {
+        // Bloqueio de concorrência local para evitar múltiplos cliques
+        if (interaction.client.processandoTicket?.has(userId)) return;
+        if (!interaction.client.processandoTicket) interaction.client.processandoTicket = new Set();
+        
+        // Mover o deferReply para o início absoluto do processamento do ticket
+        if (!interaction.deferred && !interaction.replied) {
+            await interaction.deferReply({ ephemeral: true }).catch(() => {});
+        }

@@ -1,0 +1,52 @@
+    if (customId === 'select_servico') {
+        const selectedValue = values[0]; // Ex: "sms_12"
+        if (selectedValue === 'null') return;
+
+        const idServico = selectedValue.replace('sms_', '');
+        const servico = SERVICOS.find(s => s.id == idServico);
+
+        if (!servico) {
+            return interaction.followUp({ content: 'Serviço não encontrado.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        }
+
+        const saldoUsuario = parseFloat(saldo.get(user.id) || 0);
+
+        // Salva na sessão o que ele escolheu
+        sessoesUsuario.set(user.id, {
+            estagio: 'confirmacao',
+            dados: { servico: servico }
+        });
+
+        // Garantir que usamos editReply após o deferUpdate inicial
+        await interaction.editReply(criarContainerConfirmacao(servico, saldoUsuario)).catch(async (err) => {
+            if (err.code === 10062) {
+                // Se ainda assim der Unknown Interaction, tentamos enviar uma nova mensagem como fallback
+                await channel.send(criarContainerConfirmacao(servico, saldoUsuario)).catch(() => {});
+            }
+        });
+    }
+}
+
+async function handleModal(interaction, client) {
+    const { customId, fields, user, channel } = interaction;
+
+    if (customId === 'modal_deposito_pix') {
+        console.log('[DEPÓSITO] Iniciando processo de depósito para usuário:', user.id);
+        const valorRaw = fields.getTextInputValue('valor_deposito').replace(',', '.');
+        const valor = parseFloat(valorRaw);
+        console.log('[DEPÓSITO] Valor informado:', valor);
+
+        if (isNaN(valor) || valor < 1) {
+            console.log('[DEPÓSITO] Valor inválido');
+            // Modais precisam de resposta direta ou deferida
+            if (!interaction.replied && !interaction.deferred) {
+                return interaction.reply({ content: '❌ Valor inválido. O mínimo é R$ 1,00.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+            }
+            return;
+        }
+
+        // Estado de "Aguarde..."
+        const loadingContainer = new ContainerBuilder()
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ⏳ Aguarde...\nEstamos gerando seu PIX de **R$ ${valor.toFixed(2)}**`));
+        
+        try {

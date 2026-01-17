@@ -1,0 +1,31 @@
+                console.error('[COMPRA] Erro ao cancelar número duplicado:', err);
+            }
+            sessoesUsuario.set(userId, { ...sessao, processando_compra: false });
+            return;
+        }
+
+        // Desconta Saldo
+        let currentSaldo = parseFloat(saldo.get(userId) || 0);
+        saldo.set(userId, (currentSaldo - preco).toFixed(2));
+
+        // Registrar no histórico
+        const compraInfo = {
+            plataforma: servico.nome,
+            valor: preco,
+            numero: numero.numero,
+            status: 'Aguardando SMS',
+            timestamp: Date.now(),
+            id: idNumeroStr
+        };
+        const historicoAtual = historico.get(userId) || [];
+        historicoAtual.push(compraInfo);
+        historico.set(userId, historicoAtual);
+
+        console.log(`[COMPRA] Número ${numero.id} (${numero.numero}) gerado com sucesso. Saldo debitado: R$ ${preco}`);
+
+        // Salvar ID do número para cancelamento e resetar flag de processamento
+        // Usar String() no ID para garantir compatibilidade com a API
+        const idNumeroStr = String(numero.id);
+        sessoesUsuario.set(userId, { 
+            ...sessao, 
+            id_numero: idNumeroStr, 

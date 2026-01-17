@@ -1,0 +1,10 @@
+349:                if (!interaction.replied && !interaction.deferred) return interaction.reply({ content: '❌ Você não tem permissão.', ephemeral: true });
+629:            await interaction.reply({
+657:    if (!sessao?.novo_config_json) return interaction.reply({ content: '❌ Nenhum JSON pendente.', ephemeral: true });
+747:                return interaction.reply({ content: '❌ Valor inválido. O mínimo é R$ 1,00.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+758:                await interaction.reply({ components: [loadingContainer], flags: [MessageFlags.IsComponentsV2] }).catch(() => {});
+992:            await interaction.reply({ components: [successContainer], flags: [MessageFlags.IsComponentsV2] }).catch(() => {});
+1075:            return interaction.reply({ content: `❌ Você já tem um ticket: ${canal}`, ephemeral: true }).catch(() => {});
+1102:            return interaction.reply({ content: 'Categoria nao configurada!', ephemeral: true }).catch(() => {});
+1110:            return interaction.reply({ content: 'Categoria nao configurada!', ephemeral: true }).catch(() => {});
+1147:                await interaction.reply({ content: `❌ Erro ao criar ticket: ${error.message}`, ephemeral: true }).catch(() => {});

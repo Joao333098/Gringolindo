@@ -1,0 +1,5 @@
+total 360
+-rw-r--r-- 1 root root     0 Jan  5 01:06 workspace_output_1767575173_481.txt
+-rw-r--r-- 1 root root    33 Jan  5 01:06 workspace_output_1767575138_6449.txt
+---
+cat: /workspace/outputs/workspace_output_1767575173_481.txt: input file is output file

@@ -1,0 +1,114 @@
+const Discord = require("discord.js");  
+const { GatewayIntentBits, Client, Collection } = require("discord.js")
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildVoiceStates,
+    ]
+});
+const config = require("./config.json");
+const fs = require('fs')
+const events = require('./Handler/events')
+
+client.on('interactionCreate', async (interaction) => {
+
+  if(interaction.type === Discord.InteractionType.ApplicationCommand){
+
+      const cmd = client.slashCommands.get(interaction.commandName);
+
+      if (!cmd) return interaction.reply(`Error`);
+
+      interaction["member"] = interaction.guild.members.cache.get(interaction.user.id);
+
+      cmd.run(client, interaction)
+
+   } else if (interaction.isButton() || interaction.isModalSubmit()) {
+      // O ticketHandler agora é importado uma única vez
+      const ticketHandler = require('./Eventos/SistemaDeHandlers/ticketHandler');
+      const painelCmd = require('./ComandosSlash/Administracao/painel.js');
+      
+      // Lista de IDs que pertencem ao ticketHandler oficial
+      const ticketIds = ['adquirir', 'aceitar_termos', 'negar_termos', 'menu_comprar', 'menu_depositar', 'menu_configuracoes', 'pagina_anterior', 'pagina_proxima', 'confirmar_compra', 'cancelar_compra', 'voltar_menu'];
+      
+      // Lista de IDs do painel administrativo
+      const adminIds = [
+          'admin_config_sms24h', 'admin_config_pix', 'admin_config_mp', 
+          'admin_estatisticas', 'admin_pedidos', 'admin_config_ticket', 
+          'admin_editar_menu', 'admin_add_saldo', 'admin_blacklist',
+          'admin_voltar_painel'
+      ];
+
+      const modalIds = [
+          'modal_sms24h', 'modal_pix', 'modal_mp', 'modal_ticket', 
+          'modal_saldo', 'modal_blacklist'
+      ];
+      
+      const isTicketInteraction = ticketIds.includes(interaction.customId) || 
+                                 (interaction.customId && interaction.customId.startsWith('sms_')) ||
+                                 (interaction.customId && interaction.customId.startsWith('deposito_')) ||
+                                 interaction.customId === 'modal_deposito_outro';
+
+      if (isTicketInteraction) {
+          await ticketHandler.run(interaction, client);
+          return;
+      }
+
+      // Lógica do Painel Administrativo
+      // Botões admin processados pelos handlers
+
+      // Lógica de submissão de modals do painel
+      if (interaction.isModalSubmit() && modalIds.includes(interaction.customId)) {
+          const { General, emoji } = require('./DataBaseJson');
+          
+          if (interaction.customId === 'modal_sms24h') {
+              const apiKey = interaction.fields.getTextInputValue('api_key');
+              General.set('sms24h.api_key', apiKey);
+              return interaction.reply({ content: `${emoji.certo} API Key do SMS24H configurada com sucesso!`, ephemeral: true });
+          }
+          
+          if (interaction.customId === 'modal_pix') {
+              const chave = interaction.fields.getTextInputValue('chave_pix');
+              const tipo = interaction.fields.getTextInputValue('tipo_pix');
+              General.set('pix.chave', chave);
+              General.set('pix.tipo', tipo);
+              return interaction.reply({ content: `${emoji.certo} Configurações PIX atualizadas!`, ephemeral: true });
+          }
+
+          if (interaction.customId === 'modal_mp') {
+              const token = interaction.fields.getTextInputValue('access_token');
+              General.set('mercadopago.access_token', token);
+              return interaction.reply({ content: `${emoji.certo} Access Token do Mercado Pago configurado!`, ephemeral: true });
+          }
+          
+          // Adicione outros handlers de modal conforme necessário...
+      }
+   }
+})
+
+client.slashCommands = new Discord.Collection()
+
+require('./Handler/slash')(client)
+
+events.run(client)
+
+client.commands = new Discord.Collection();
+client.aliases = new Discord.Collection();
+
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.log(`\ud83d\udeab Erro Detectado:\n\n${reason.stack}`);
+});
+
+process.on('uncaughtException', (error, origin) => {
+  console.log(`\ud83d\udeab Erro Detectado:]\n\n${error.stack}`);
+});
+
+process.on('uncaughtExceptionMonitor', (error, origin) => {
+  console.log(`\ud83d\udeab Erro Detectado:\n\n${error.stack}`);
+});
+
+
+client.login(config.token);
