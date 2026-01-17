@@ -11,4 +11,3 @@ python-multipart==0.0.21
 pytz==2025.2
 requests==2.32.5
 uvicorn==0.25.0
-zipfile36
