@@ -36,6 +36,43 @@
       "user_id": "123456789012345678",
       "valor": 10.5,
       "transacao_id": "32f3ed10-f819-41a9-982d-fc6f4e56a8e9"
+    },
+    {
+      "type": 17,
+      "accent_color": null,
+      "spoiler": false,
+      "components": [
+        {
+          "type": 10,
+          "content": "## <:raiobranco_cristalstore:1457177790129373259> saldo adicionado"
+        },
+        {
+          "type": 14,
+          "divider": false,
+          "spacing": 2
+        },
+        {
+          "type": 10,
+          "content": "<:membros_cristalstore:1457254954283700348>  Usuário: <@123456789012345678>\n<:bagdinheiro_cristalstore:1457177684688764948>  Valor Pago: R$25.50\n<:moedas:1457254694438043702>  Saldo Adicionado: R$25.50\n<:pix:1457254722481164494>  Transação: 395d9a06-4671-45de-84b9-758eabbfb943"
+        },
+        {
+          "type": 14,
+          "divider": true,
+          "spacing": 1
+        },
+        {
+          "type": 10,
+          "content": "<:confirm:1457255097758122058>  Status: Aprovado\n<a:953908880642043954:1457254622396809256>  Saldo adicionado automaticamente!"
+        },
+        {
+          "type": 10,
+          "content": "<:celular:1457254465470992425> Data: 17/01/2026 18:18"
+        }
+      ],
+      "timestamp": "2026-01-17T18:18:30.423022+00:00",
+      "user_id": "123456789012345678",
+      "valor": 25.5,
+      "transacao_id": "395d9a06-4671-45de-84b9-758eabbfb943"
     }
   ]
 }
