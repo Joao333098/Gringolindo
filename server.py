@@ -19,14 +19,28 @@ import secrets
 import string
 import shutil
 
+# Database helpers
+def read_json_file(filepath: str) -> Dict:
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+# Load configuration from server.json
+server_config = read_json_file(os.path.join(os.path.dirname(__file__), 'server.json'))
+
 app = FastAPI(title="Discord Bot Admin Panel")
 
 security = HTTPBearer()
 
+# Get SITE_URL from server.json
+SITE_URL = server_config.get("site_url", "http://localhost:8001")
+
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*", SITE_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,14 +129,6 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         raise HTTPException(status_code=401, detail="Token expirado")
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
-
-# Database helpers
-def read_json_file(filepath: str) -> Dict:
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
 
 def write_json_file(filepath: str, data: Dict) -> None:
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -389,6 +395,10 @@ async def login(request: LoginRequest):
 @app.get("/api/auth/verify")
 async def verify_auth(current_user: str = Depends(verify_token)):
     return {"valid": True, "user": current_user}
+
+@app.get("/")
+async def root():
+    return {"message": "Discord Bot Admin Panel API is running. Please access the frontend."}
 
 @app.get("/api/dashboard/stats")
 async def get_dashboard_stats(current_user: str = Depends(verify_token)):
@@ -749,9 +759,9 @@ async def download_project(current_user: str = Depends(verify_token)):
     # Lista de arquivos e pastas para incluir (EXPANDIDA)
     files_to_include = [
         # Backend
-        ("backend/server.py", "/app/backend/server.py"),
-        ("backend/requirements.txt", "/app/backend/requirements.txt"), 
-        ("backend/.env", "/app/backend/.env"),
+        ("server.py", "/app/server.py"),
+        ("requirements.txt", "/app/requirements.txt"),
+        ("server.json", "/app/server.json"),
         
         # Frontend - Core
         ("frontend/package.json", "/app/frontend/package.json"),
@@ -986,4 +996,6 @@ Enjoy! 🎉"""
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    port = int(server_config.get("port", 8001))
+    print(f"Starting server on port {port} with SITE_URL={SITE_URL}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
