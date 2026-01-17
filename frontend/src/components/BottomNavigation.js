@@ -6,8 +6,8 @@ import {
   Users, 
   DollarSign, 
   Package, 
-  Activity,
-  Bot
+  Bot,
+  Download
 } from 'lucide-react';
 
 const BottomNavigation = () => {
@@ -16,10 +16,10 @@ const BottomNavigation = () => {
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/ticket', icon: Settings, label: 'Ticket' },
-    { path: '/cargos', icon: Users, label: 'Cargos' },
     { path: '/saldo', icon: DollarSign, label: 'Saldo' },
-    { path: '/payments', icon: Package, label: 'Pay' },
     { path: '/bot', icon: Bot, label: 'Bot' },
+    { path: '/payments', icon: Package, label: 'Pay' },
+    { path: '/download', icon: Download, label: 'ZIP' },
   ];
   
   return (
