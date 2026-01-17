@@ -23,6 +23,8 @@ const MobileShell = ({ children }) => {
         return 'Entregas';
       case '/bot':
         return 'Config Bot';
+      case '/download':
+        return 'Download ZIP';
       default:
         return 'Sistema E1';
     }
