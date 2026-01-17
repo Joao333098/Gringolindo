@@ -18,17 +18,24 @@ from fastapi.responses import StreamingResponse
 import secrets
 import string
 import shutil
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Database helpers
+def read_json_file(filepath: str) -> Dict:
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+# Load configuration from server.json
+server_config = read_json_file(os.path.join(os.path.dirname(__file__), 'server.json'))
 
 app = FastAPI(title="Discord Bot Admin Panel")
 
 security = HTTPBearer()
 
-# Get SITE_URL from env
-SITE_URL = os.getenv("SITE_URL", "http://localhost:8001")
+# Get SITE_URL from server.json
+SITE_URL = server_config.get("site_url", "http://localhost:8001")
 
 # CORS configuration
 app.add_middleware(
@@ -122,14 +129,6 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         raise HTTPException(status_code=401, detail="Token expirado")
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
-
-# Database helpers
-def read_json_file(filepath: str) -> Dict:
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
 
 def write_json_file(filepath: str, data: Dict) -> None:
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -993,6 +992,6 @@ Enjoy! 🎉"""
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8001))
+    port = int(server_config.get("port", 8001))
     print(f"Starting server on port {port} with SITE_URL={SITE_URL}")
     uvicorn.run(app, host="0.0.0.0", port=port)
