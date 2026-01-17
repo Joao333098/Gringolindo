@@ -1,0 +1,122 @@
+{
+  "identity": {
+    "name": "E1: The Anti-AI Designer",
+    "mission": "Create a 'Cyber-Glitch iOS' fusion interface that breaks standard admin panel conventions.",
+    "principles": [
+      "Fusion: iOS Glassmorphism x Cyberpunk Glitch Art",
+      "Emotion: Aggressive, Powerful, Exclusive",
+      "Content: Data is ammunition. Display it with tactical precision.",
+      "Contrast: Void Black vs. Cyber Red (#FF003C)",
+      "Negative Space: Luxurious padding to let the glitch effects breathe."
+    ]
+  },
+  "theme": {
+    "mode": "dark",
+    "strategy": "The 'Void Terminal' - A deep, immersive dark mode with neon red accents."
+  },
+  "typography": {
+    "headings": {
+      "family": "Unbounded, sans-serif",
+      "weights": ["700", "900"],
+      "usage": "Page titles, Hero sections, Key metrics",
+      "letterSpacing": "tracking-tighter"
+    },
+    "body": {
+      "family": "JetBrains Mono, monospace",
+      "weights": ["400", "500"],
+      "usage": "Inputs, Data tables, Logs, Descriptions",
+      "letterSpacing": "tracking-normal"
+    },
+    "google_fonts_import": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Unbounded:wght@400;700;900&display=swap"
+  },
+  "colors": {
+    "palette": {
+      "background": "#050505",
+      "surface": "#0A0A0A",
+      "surface_highlight": "#111111",
+      "primary": "#FF003C",
+      "primary_dim": "#990024",
+      "secondary": "#1A1A1A",
+      "text_primary": "#EDEDED",
+      "text_secondary": "#888888",
+      "border": "#222222",
+      "success": "#00FF9D",
+      "error": "#FF003C",
+      "warning": "#FFD600"
+    },
+    "gradients": {
+      "glitch_border": "linear-gradient(45deg, #FF003C, transparent 40%, transparent 60%, #FF003C)",
+      "void_overlay": "linear-gradient(to bottom, rgba(5,5,5,0), #050505)"
+    }
+  },
+  "layout": {
+    "grid_system": "Bento Grid (Mode A for Dashboard, Mode B for Logs)",
+    "spacing": "Tailwind Scale (p-4, p-6, p-8, p-12)",
+    "container_style": "Mobile-first, max-w-md mx-auto for mobile view simulation on desktop if needed, or full-width responsive.",
+    "border_radius": {
+      "outer": "rounded-3xl",
+      "inner": "rounded-xl",
+      "buttons": "rounded-full"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#FF003C] text-white hover:bg-[#D60032] font-unbounded uppercase tracking-widest shadow-[0_0_15px_rgba(255,0,60,0.5)] transition-all hover:scale-105 active:scale-95",
+      "secondary": "bg-transparent border border-[#333] text-[#EDEDED] hover:border-[#FF003C] hover:text-[#FF003C] font-mono"
+    },
+    "cards": {
+      "style": "bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 hover:border-[#FF003C]/50 transition-colors duration-300",
+      "glitch_effect": "On hover, apply subtle chromatic aberration or border flicker."
+    },
+    "inputs": {
+      "style": "bg-[#111] border-b-2 border-[#333] focus:border-[#FF003C] text-[#EDEDED] font-mono rounded-none px-4 py-3 outline-none transition-colors placeholder:text-[#444]"
+    },
+    "navigation": {
+      "mobile": "Fixed bottom, floating glass bar (bg-black/60 backdrop-blur-lg), border-t border-white/10. Icons: Lucide-React."
+    }
+  },
+  "visual_enhancers": {
+    "glitch_library": "react-powerglitch",
+    "glitch_usage": "Apply to Logo, 404 pages, Critical Error messages, and 'Access Denied' states.",
+    "textures": "Use subtle noise overlay (opacity 0.03) on the entire background to reduce digital flatness.",
+    "icons": "Lucide-React (default). Use 'Zap', 'Terminal', 'Shield', 'Activity' for key sections."
+  },
+  "images": {
+    "login_background": {
+      "url": "https://images.unsplash.com/photo-1767477665606-a29603e1c479?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxnbGl0Y2glMjBhcnQlMjByZWQlMjBibGFjayUyMGFic3RyYWN0JTIwdGV4dHVyZXxlbnwwfHx8fDE3Njg2NzMxNDJ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Abstract Red Glitch Texture",
+      "usage": "Login screen background with heavy blur and overlay."
+    },
+    "dashboard_header": {
+      "url": "https://images.unsplash.com/photo-1765408217540-3adb49528bdf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwyfHxnbGl0Y2glMjBhcnQlMjByZWQlMjBibGFjayUyMGFic3RyYWN0JTIwdGV4dHVyZXxlbnwwfHx8fDE3Njg2NzMxNDJ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Cyberpunk Red Data Stream",
+      "usage": "Header background for the main dashboard."
+    }
+  },
+  "motion": {
+    "page_transition": "Slide up (iOS style) with a slight 'glitch' snap at the end.",
+    "hover_effects": "Instant color shift (Cyberpunk style) rather than slow fades.",
+    "loading": "Terminal typing effect or a rotating 3D wireframe."
+  },
+  "accessibility": {
+    "contrast": "Ensure text is #EDEDED or #FFFFFF on dark backgrounds. Avoid dark red text on black.",
+    "reduced_motion": "Disable glitch effects if 'prefers-reduced-motion' is true."
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALLATION: Run `npm install react-powerglitch lucide-react`.",
+    "2. TAILWIND: Update `tailwind.config.js` to include the custom colors (Void Black #050505, Cyber Red #FF003C) and fonts (Unbounded, JetBrains Mono).",
+    "3. LAYOUT: Build a 'Mobile Shell' layout component that wraps pages. It should have the bottom navigation and a top status bar.",
+    "4. LOGIN: Create a login page that looks like a secure terminal access point. Use the 'login_background' image.",
+    "5. DASHBOARD: Implement a Bento Grid layout for stats. Use 'react-powerglitch' on the 'SYSTEM ONLINE' status text.",
+    "6. FORMS: For the 'Ticket Config' and 'Payment Config', use the 'Terminal Input' style defined in components.",
+    "7. CRITICAL: Ensure the 'vovo' / '2210DORRY90' credentials work for the login simulation (mock auth).",
+    "8. DATA-TESTID: Add `data-testid` to all inputs and buttons (e.g., `login-input-username`, `dashboard-stat-sales`)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not use generic gradients. Use solid, deep colors or noise textures.",
+    "Avoid 'rounded-md' default. Go for 'rounded-none' (brutalist) or 'rounded-3xl' (organic) - mixing them creates the 'Glitch' feel.",
+    "Use 'sonner' for notifications, styled with black backgrounds and red borders.",
+    "Never use 'Inter' for headings. Use 'Unbounded'.",
+    "Always add `data-testid` to interactive elements."
+  ]
+}
