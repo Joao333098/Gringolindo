@@ -1,3 +1,13 @@
 {
-  "logs": []
+  "logs": [
+    {
+      "timestamp": "2026-01-18T14:04:19.967644+00:00",
+      "action": "user_login",
+      "user_id": null,
+      "details": {
+        "username": "vovo"
+      },
+      "id": "5d724ba9-5733-402e-9bc3-95dd32d9bd31"
+    }
+  ]
 }
