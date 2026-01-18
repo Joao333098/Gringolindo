@@ -872,7 +872,7 @@ async def download_project(current_user: str = Depends(verify_token)):
 cd backend
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+venv\\\\Scripts\\\\activate     # Windows
 pip install -r requirements.txt
 python server.py
 ```
@@ -887,7 +887,7 @@ yarn start
 ## 🔐 Acesso
 - **Usuário:** vovo
 - **Senha:** 2210DORRY90
-- **Backend:** http://localhost:8001
+- **Backend:** http://localhost:27687
 - **Frontend:** http://localhost:3000
 
 ## 📱 Páginas Disponíveis
@@ -986,4 +986,4 @@ Enjoy! 🎉"""
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=27687)
