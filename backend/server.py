@@ -385,14 +385,14 @@ def restart_discord_bot() -> bool:
 # ROTAS EXISTENTES (mantidas)
 
 # Rota raiz - Serve o frontend React
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def root():
-    """Serve a página inicial do frontend React"""
+    """Serve a página inicial do frontend React ou informações da API"""
     index_file = FRONTEND_BUILD_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(index_file)
+        return FileResponse(index_file, media_type="text/html")
     else:
-        # Fallback se build não existir
+        # Fallback se build não existir (Retorna JSON automaticamente)
         return {
             "message": "🚀 Gringolindo Admin Panel API",
             "version": "2.0",
@@ -1029,7 +1029,7 @@ Enjoy! 🎉"""
 
 # Catch-all route para SPA (Single Page Application)
 # Serve o index.html para todas as rotas não-API (React Router)
-@app.get("/{full_path:path}", response_class=HTMLResponse)
+@app.get("/{full_path:path}")
 async def catch_all(full_path: str):
     """Serve o frontend React para todas as rotas não-API"""
     # Não interceptar rotas da API
@@ -1039,7 +1039,7 @@ async def catch_all(full_path: str):
     # Servir index.html para rotas do frontend
     index_file = FRONTEND_BUILD_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(index_file)
+        return FileResponse(index_file, media_type="text/html")
     else:
         return {"detail": "Frontend not found"}
 
