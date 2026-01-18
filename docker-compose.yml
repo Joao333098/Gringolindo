@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  gringolindo:
+    build: .
+    container_name: gringolindo-app
+    restart: unless-stopped
+    ports:
+      - "8001:8001"  # Backend API
+      - "3000:3000"  # Frontend (se necessário)
+    environment:
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8001
+      - NODE_ENV=production
+      # Adicione suas variáveis de ambiente aqui
+      # - DISCORD_TOKEN=${DISCORD_TOKEN}
+      # - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./backend/DataBaseJson:/app/backend/DataBaseJson
+      - ./logs:/app/logs
+      - ./config.json:/app/config.json
+    networks:
+      - gringolindo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  gringolindo-network:
+    driver: bridge
+
+volumes:
+  database:
+  logs:

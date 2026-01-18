@@ -62,9 +62,9 @@ dist/
 # Test reports (manter apenas o mais recente)
 /test_reports/iteration_*.json-e 
 # Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
+.env
+.env.*
+*.env.local
+*.env.production
+*.env.development
+config.json

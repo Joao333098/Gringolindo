@@ -373,6 +373,18 @@ def restart_discord_bot() -> bool:
         return False
 
 # ROTAS EXISTENTES (mantidas)
+
+# Health check para Docker/Kubernetes
+@app.get("/health")
+async def health_check():
+    """Endpoint de health check para monitoramento"""
+    return {
+        "status": "healthy",
+        "service": "gringolindo-backend",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "2.0"
+    }
+
 @app.post("/api/auth/login")
 async def login(request: LoginRequest):
     if not verify_credentials(request.username, request.password):
