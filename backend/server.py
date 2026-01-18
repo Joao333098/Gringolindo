@@ -14,7 +14,9 @@ import requests
 import asyncio
 import zipfile
 import io
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 import secrets
 import string
 import shutil
@@ -31,6 +33,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static files configuration (Frontend React)
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_BUILD_DIR = BASE_DIR / "frontend" / "build"
+
+# Mount static files (CSS, JS, images)
+if FRONTEND_BUILD_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_BUILD_DIR / "static")), name="static")
 
 # JWT Configuration
 JWT_SECRET = "2210DORRY90_SECRET_KEY_VOVO"
@@ -374,20 +384,26 @@ def restart_discord_bot() -> bool:
 
 # ROTAS EXISTENTES (mantidas)
 
-# Rota raiz
-@app.get("/")
+# Rota raiz - Serve o frontend React
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    """Página inicial da API"""
-    return {
-        "message": "🚀 Gringolindo Admin Panel API",
-        "version": "2.0",
-        "status": "online",
-        "endpoints": {
-            "docs": "/docs",
-            "health": "/health",
-            "login": "/api/auth/login"
+    """Serve a página inicial do frontend React"""
+    index_file = FRONTEND_BUILD_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    else:
+        # Fallback se build não existir
+        return {
+            "message": "🚀 Gringolindo Admin Panel API",
+            "version": "2.0",
+            "status": "online",
+            "endpoints": {
+                "docs": "/docs",
+                "health": "/health",
+                "login": "/api/auth/login"
+            },
+            "note": "Frontend build not found. Run 'yarn build' in frontend directory."
         }
-    }
 
 # Health check para Docker/Kubernetes
 @app.get("/health")
@@ -1008,8 +1024,24 @@ Enjoy! 🎉"""
         headers={"Content-Disposition": "attachment; filename=gradianet-sistema-completo.zip"}
     )
 
-# Outras rotas existentes continuam...
+## Outras rotas existentes continuam...
 # (todas as rotas originais do sistema)
+
+# Catch-all route para SPA (Single Page Application)
+# Serve o index.html para todas as rotas não-API (React Router)
+@app.get("/{full_path:path}", response_class=HTMLResponse)
+async def catch_all(full_path: str):
+    """Serve o frontend React para todas as rotas não-API"""
+    # Não interceptar rotas da API
+    if full_path.startswith(("api/", "docs", "health", "openapi.json", "static/")):
+        return {"detail": "Not Found"}
+    
+    # Servir index.html para rotas do frontend
+    index_file = FRONTEND_BUILD_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    else:
+        return {"detail": "Frontend not found"}
 
 if __name__ == "__main__":
     import uvicorn
