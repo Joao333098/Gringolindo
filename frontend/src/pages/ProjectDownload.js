@@ -180,7 +180,7 @@ const ProjectDownload = () => {
             <div className="space-y-1 text-sm font-mono text-text-secondary">
               <p>• <strong className="text-cyber-yellow">Usuario:</strong> vovo</p>
               <p>• <strong className="text-cyber-yellow">Senha:</strong> 2210DORRY90</p>
-              <p>• <strong className="text-cyber-yellow">Backend:</strong> localhost:8001</p>
+              <p>• <strong className="text-cyber-yellow">Backend:</strong> localhost:27687</p>
               <p>• <strong className="text-cyber-yellow">Frontend:</strong> localhost:3000</p>
             </div>
           </div>

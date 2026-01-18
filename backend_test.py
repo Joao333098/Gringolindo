@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class DiscordBotAPITester:
-    def __init__(self, base_url="https://discordbot-panel-2.preview.emergentagent.com"):
+    def __init__(self, base_url="http://localhost:27687"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
