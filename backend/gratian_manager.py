@@ -43,10 +43,17 @@ class GratianManager:
         kwargs['headers'] = {**self.headers, **kwargs.get('headers', {})}
         
         try:
+            print(f"[GratianAPI] {method} {url}")
             response = requests.request(method, url, **kwargs)
+            print(f"[GratianAPI] Status: {response.status_code}")
+            
+            if response.status_code == 401:
+                return {"success": False, "error": "API Key inválida ou expirada na Gratian.pro", "status_code": 401}
+                
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            print(f"[GratianAPI] Erro: {str(e)}")
             return {
                 "success": False,
                 "error": str(e),

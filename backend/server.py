@@ -124,15 +124,22 @@ def create_access_token(data: dict) -> str:
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        token = credentials.credentials
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         username = payload.get("sub")
         if username != "vovo":
-            raise HTTPException(status_code=401, detail="Token inválido")
+            print(f"[Auth] Usuário inválido no token: {username}")
+            raise HTTPException(status_code=401, detail="Usuário não autorizado")
         return username
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expirado")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Token inválido")
+        print("[Auth] Token expirado")
+        raise HTTPException(status_code=401, detail="Sessão expirada. Faça login novamente.")
+    except jwt.InvalidTokenError:
+        print("[Auth] Token inválido")
+        raise HTTPException(status_code=401, detail="Token inválido. Faça login novamente.")
+    except Exception as e:
+        print(f"[Auth] Erro desconhecido: {str(e)}")
+        raise HTTPException(status_code=401, detail="Erro de autenticação")
 
 # Database helpers
 def read_json_file(filepath: str) -> Dict:
