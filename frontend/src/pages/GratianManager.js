@@ -19,7 +19,7 @@ export default function GratianManager() {
     try {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gratian/config`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
         }
       });
       const data = await response.json();
@@ -37,7 +37,7 @@ export default function GratianManager() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
         },
         body: JSON.stringify({
           api_key: config.api_key,
@@ -58,7 +58,7 @@ export default function GratianManager() {
     try {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gratian/bot/status`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
         }
       });
       const data = await response.json();
@@ -74,7 +74,7 @@ export default function GratianManager() {
     try {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gratian/bot/logs`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
         }
       });
       const data = await response.json();
@@ -98,7 +98,7 @@ export default function GratianManager() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
         },
         body: JSON.stringify({
           app_id: config.bot_app_id,
