@@ -1,4 +1,14 @@
 {
+  "name": "gringolindo",
+  "version": "1.0.0",
+  "description": "Discord Bot Admin Panel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "backend": "cd backend && python3 server.py",
+    "frontend": "cd frontend && yarn start",
+    "install-all": "npm install && cd backend && pip3 install -r requirements.txt && cd ../frontend && yarn install"
+  },
   "dependencies": {
     "@discordjs/voice": "^0.16.1",
     "axios": "^1.13.2",

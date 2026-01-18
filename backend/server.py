@@ -131,7 +131,7 @@ def write_json_file(filepath: str, data: Dict) -> None:
 
 def log_action(action: str, user_id: str = None, details: Dict = None):
     """Registra ações do sistema"""
-    logs = read_json_file("/app/DataBaseJson/action_logs.json")
+    logs = read_json_file("./DataBaseJson/action_logs.json")
     if "logs" not in logs:
         logs["logs"] = []
     
@@ -149,12 +149,12 @@ def log_action(action: str, user_id: str = None, details: Dict = None):
     if len(logs["logs"]) > 1000:
         logs["logs"] = logs["logs"][-1000:]
     
-    write_json_file("/app/DataBaseJson/action_logs.json", logs)
+    write_json_file("./DataBaseJson/action_logs.json", logs)
 
 async def send_webhook(event: str, data: Dict):
     """Envia notificação via webhook"""
     try:
-        webhooks = read_json_file("/app/DataBaseJson/webhooks.json")
+        webhooks = read_json_file("./DataBaseJson/webhooks.json")
         active_webhooks = webhooks.get("webhooks", [])
         
         for webhook in active_webhooks:
@@ -172,16 +172,16 @@ async def send_webhook(event: str, data: Dict):
 def auto_backup():
     """Cria backup automático dos dados"""
     try:
-        backup_dir = "/app/backups"
+        backup_dir = "./backups"
         os.makedirs(backup_dir, exist_ok=True)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = f"{backup_dir}/backup_{timestamp}.zip"
         
         with zipfile.ZipFile(backup_path, 'w') as zipf:
-            for file in os.listdir("/app/DataBaseJson"):
+            for file in os.listdir("./DataBaseJson"):
                 if file.endswith('.json'):
-                    zipf.write(f"/app/DataBaseJson/{file}", file)
+                    zipf.write(f"./DataBaseJson/{file}", file)
         
         log_action("auto_backup", details={"backup_file": backup_path})
         return backup_path
@@ -235,11 +235,11 @@ async def get_discord_user_info(user_id: str, bot_token: str) -> Dict:
     }
 
 def get_bot_stats() -> Dict:
-    config = read_json_file("/app/DataBaseJson/config.json")
-    saldo_data = read_json_file("/app/DataBaseJson/saldo.json")
-    historico = read_json_file("/app/DataBaseJson/historico.json")
-    blacklist = read_json_file("/app/DataBaseJson/blacklist.json")
-    coupons = read_json_file("/app/DataBaseJson/coupons.json")
+    config = read_json_file("./DataBaseJson/config.json")
+    saldo_data = read_json_file("./DataBaseJson/saldo.json")
+    historico = read_json_file("./DataBaseJson/historico.json")
+    blacklist = read_json_file("./DataBaseJson/blacklist.json")
+    coupons = read_json_file("./DataBaseJson/coupons.json")
     
     stats = config.get("estatisticas", {})
     
@@ -395,7 +395,7 @@ async def get_dashboard_stats(current_user: str = Depends(verify_token)):
     stats = get_bot_stats()
     
     # Verificar status real do bot
-    config = read_json_file("/app/config.json")
+    config = read_json_file("./config.json")
     token = config.get("token", "")
     
     if token:
@@ -415,12 +415,12 @@ async def get_dashboard_stats(current_user: str = Depends(verify_token)):
 # 1. Sistema de Blacklist
 @app.get("/api/blacklist")
 async def get_blacklist(current_user: str = Depends(verify_token)):
-    blacklist = read_json_file("/app/DataBaseJson/blacklist.json")
+    blacklist = read_json_file("./DataBaseJson/blacklist.json")
     return {"users": blacklist.get("users", [])}
 
 @app.post("/api/blacklist")
 async def add_to_blacklist(request: BlacklistUser, current_user: str = Depends(verify_token)):
-    blacklist = read_json_file("/app/DataBaseJson/blacklist.json")
+    blacklist = read_json_file("./DataBaseJson/blacklist.json")
     if "users" not in blacklist:
         blacklist["users"] = []
     
@@ -437,7 +437,7 @@ async def add_to_blacklist(request: BlacklistUser, current_user: str = Depends(v
     }
     
     blacklist["users"].append(blacklist_entry)
-    write_json_file("/app/DataBaseJson/blacklist.json", blacklist)
+    write_json_file("./DataBaseJson/blacklist.json", blacklist)
     
     log_action("user_blacklisted", request.user_id, {"motivo": request.motivo})
     await send_webhook("user_blacklisted", blacklist_entry)
@@ -446,12 +446,12 @@ async def add_to_blacklist(request: BlacklistUser, current_user: str = Depends(v
 
 @app.delete("/api/blacklist/{user_id}")
 async def remove_from_blacklist(user_id: str, current_user: str = Depends(verify_token)):
-    blacklist = read_json_file("/app/DataBaseJson/blacklist.json")
+    blacklist = read_json_file("./DataBaseJson/blacklist.json")
     if "users" not in blacklist:
         blacklist["users"] = []
     
     blacklist["users"] = [u for u in blacklist["users"] if u["user_id"] != user_id]
-    write_json_file("/app/DataBaseJson/blacklist.json", blacklist)
+    write_json_file("./DataBaseJson/blacklist.json", blacklist)
     
     log_action("user_unblacklisted", user_id)
     return {"message": "Usuário removido da blacklist"}
@@ -459,12 +459,12 @@ async def remove_from_blacklist(user_id: str, current_user: str = Depends(verify
 # 2. Sistema de Cupons
 @app.get("/api/coupons")
 async def get_coupons(current_user: str = Depends(verify_token)):
-    coupons = read_json_file("/app/DataBaseJson/coupons.json")
+    coupons = read_json_file("./DataBaseJson/coupons.json")
     return {"coupons": coupons.get("coupons", [])}
 
 @app.post("/api/coupons")
 async def create_coupon(request: CouponCreate, current_user: str = Depends(verify_token)):
-    coupons = read_json_file("/app/DataBaseJson/coupons.json")
+    coupons = read_json_file("./DataBaseJson/coupons.json")
     if "coupons" not in coupons:
         coupons["coupons"] = []
     
@@ -484,14 +484,14 @@ async def create_coupon(request: CouponCreate, current_user: str = Depends(verif
     }
     
     coupons["coupons"].append(coupon)
-    write_json_file("/app/DataBaseJson/coupons.json", coupons)
+    write_json_file("./DataBaseJson/coupons.json", coupons)
     
     log_action("coupon_created", details={"codigo": request.codigo, "valor": request.valor})
     return {"message": "Cupom criado com sucesso", "coupon": coupon}
 
 @app.post("/api/coupons/use/{codigo}")
 async def use_coupon(codigo: str, user_id: str, current_user: str = Depends(verify_token)):
-    coupons = read_json_file("/app/DataBaseJson/coupons.json")
+    coupons = read_json_file("./DataBaseJson/coupons.json")
     
     # Encontrar cupom
     coupon = None
@@ -516,16 +516,16 @@ async def use_coupon(codigo: str, user_id: str, current_user: str = Depends(veri
             raise HTTPException(status_code=400, detail="Cupom expirado")
     
     # Usar cupom - adicionar saldo
-    saldo_data = read_json_file("/app/DataBaseJson/saldo.json")
+    saldo_data = read_json_file("./DataBaseJson/saldo.json")
     if user_id not in saldo_data:
         saldo_data[user_id] = 0.0
     
     saldo_data[user_id] += coupon["valor"]
-    write_json_file("/app/DataBaseJson/saldo.json", saldo_data)
+    write_json_file("./DataBaseJson/saldo.json", saldo_data)
     
     # Atualizar cupom
     coupon["usos_atual"] += 1
-    write_json_file("/app/DataBaseJson/coupons.json", coupons)
+    write_json_file("./DataBaseJson/coupons.json", coupons)
     
     log_action("coupon_used", user_id, {"codigo": codigo, "valor": coupon["valor"]})
     await send_webhook("coupon_used", {"codigo": codigo, "user_id": user_id, "valor": coupon["valor"]})
@@ -539,8 +539,8 @@ async def use_coupon(codigo: str, user_id: str, current_user: str = Depends(veri
 # 3. Sistema de Ranking
 @app.get("/api/ranking")
 async def get_ranking(current_user: str = Depends(verify_token)):
-    saldo_data = read_json_file("/app/DataBaseJson/saldo.json")
-    config = read_json_file("/app/config.json")
+    saldo_data = read_json_file("./DataBaseJson/saldo.json")
+    config = read_json_file("./config.json")
     bot_token = config.get("token", "")
     
     ranking = []
@@ -575,12 +575,12 @@ async def get_ranking(current_user: str = Depends(verify_token)):
 # 4. Sistema de Webhooks
 @app.get("/api/webhooks")
 async def get_webhooks(current_user: str = Depends(verify_token)):
-    webhooks = read_json_file("/app/DataBaseJson/webhooks.json")
+    webhooks = read_json_file("./DataBaseJson/webhooks.json")
     return {"webhooks": webhooks.get("webhooks", [])}
 
 @app.post("/api/webhooks")
 async def create_webhook(request: WebhookConfig, current_user: str = Depends(verify_token)):
-    webhooks = read_json_file("/app/DataBaseJson/webhooks.json")
+    webhooks = read_json_file("./DataBaseJson/webhooks.json")
     if "webhooks" not in webhooks:
         webhooks["webhooks"] = []
     
@@ -593,7 +593,7 @@ async def create_webhook(request: WebhookConfig, current_user: str = Depends(ver
     }
     
     webhooks["webhooks"].append(webhook)
-    write_json_file("/app/DataBaseJson/webhooks.json", webhooks)
+    write_json_file("./DataBaseJson/webhooks.json", webhooks)
     
     log_action("webhook_created", details={"url": request.url})
     return {"message": "Webhook criado com sucesso"}
@@ -609,7 +609,7 @@ async def create_backup(current_user: str = Depends(verify_token)):
 
 @app.get("/api/backup/list")
 async def list_backups(current_user: str = Depends(verify_token)):
-    backup_dir = "/app/backups"
+    backup_dir = "./backups"
     if not os.path.exists(backup_dir):
         return {"backups": []}
     
@@ -630,7 +630,7 @@ async def list_backups(current_user: str = Depends(verify_token)):
 # 6. Logs de Ações
 @app.get("/api/logs/actions")
 async def get_action_logs(current_user: str = Depends(verify_token)):
-    logs = read_json_file("/app/DataBaseJson/action_logs.json")
+    logs = read_json_file("./DataBaseJson/action_logs.json")
     return {
         "logs": sorted(logs.get("logs", []), key=lambda x: x.get("timestamp", ""), reverse=True)[:100]
     }
@@ -638,7 +638,7 @@ async def get_action_logs(current_user: str = Depends(verify_token)):
 # 7. Configurações do Sistema
 @app.get("/api/system/config")
 async def get_system_config(current_user: str = Depends(verify_token)):
-    config = read_json_file("/app/DataBaseJson/system_config.json")
+    config = read_json_file("./DataBaseJson/system_config.json")
     return config
 
 @app.post("/api/system/config")
@@ -651,7 +651,7 @@ async def update_system_config(request: SystemConfig, current_user: str = Depend
         "atualizado_em": datetime.now(timezone.utc).isoformat()
     }
     
-    write_json_file("/app/DataBaseJson/system_config.json", config)
+    write_json_file("./DataBaseJson/system_config.json", config)
     log_action("system_config_updated", details=config)
     
     return {"message": "Configuração do sistema atualizada"}
@@ -663,8 +663,8 @@ async def get_advanced_analytics(current_user: str = Depends(verify_token)):
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=30)
     
-    logs = read_json_file("/app/DataBaseJson/action_logs.json")
-    entregas = read_json_file("/app/DataBaseJson/entrega.json")
+    logs = read_json_file("./DataBaseJson/action_logs.json")
+    entregas = read_json_file("./DataBaseJson/entrega.json")
     
     analytics = {
         "periodo": {
@@ -706,7 +706,7 @@ async def get_advanced_analytics(current_user: str = Depends(verify_token)):
 # 9. Configuração de Tickets
 @app.get("/api/tickets/config")
 async def get_ticket_config(current_user: str = Depends(verify_token)):
-    config = read_json_file("/app/DataBaseJson/config.json")
+    config = read_json_file("./DataBaseJson/config.json")
     return {
         "tickets": config.get("tickets", {}),
         "entrega": config.get("entrega", {})
@@ -714,7 +714,7 @@ async def get_ticket_config(current_user: str = Depends(verify_token)):
 
 @app.post("/api/tickets/config")
 async def update_ticket_config(ticket_config: TicketConfig, current_user: str = Depends(verify_token)):
-    config = read_json_file("/app/DataBaseJson/config.json")
+    config = read_json_file("./DataBaseJson/config.json")
     
     if "tickets" not in config:
         config["tickets"] = {}
@@ -728,7 +728,7 @@ async def update_ticket_config(ticket_config: TicketConfig, current_user: str = 
     if ticket_config.entrega_canal_id:
         config["entrega"]["canal_id"] = ticket_config.entrega_canal_id
     
-    write_json_file("/app/DataBaseJson/config.json", config)
+    write_json_file("./DataBaseJson/config.json", config)
     log_action("ticket_config_updated", details={
         "categoria_id": ticket_config.categoria_id,
         "logs_id": ticket_config.logs_id,
@@ -749,73 +749,73 @@ async def download_project(current_user: str = Depends(verify_token)):
     # Lista de arquivos e pastas para incluir (EXPANDIDA)
     files_to_include = [
         # Backend
-        ("backend/server.py", "/app/backend/server.py"),
-        ("backend/requirements.txt", "/app/backend/requirements.txt"), 
-        ("backend/.env", "/app/backend/.env"),
+        ("backend/server.py", "./backend/server.py"),
+        ("backend/requirements.txt", "./backend/requirements.txt"), 
+        ("backend/.env", "./backend/.env"),
         
         # Frontend - Core
-        ("frontend/package.json", "/app/frontend/package.json"),
-        ("frontend/tailwind.config.js", "/app/frontend/tailwind.config.js"),
-        ("frontend/postcss.config.js", "/app/frontend/postcss.config.js"),
-        ("frontend/.env", "/app/frontend/.env"),
-        ("frontend/craco.config.js", "/app/frontend/craco.config.js"),
-        ("frontend/components.json", "/app/frontend/components.json"),
-        ("frontend/jsconfig.json", "/app/frontend/jsconfig.json"),
-        ("frontend/public/index.html", "/app/frontend/public/index.html"),
+        ("frontend/package.json", "./frontend/package.json"),
+        ("frontend/tailwind.config.js", "./frontend/tailwind.config.js"),
+        ("frontend/postcss.config.js", "./frontend/postcss.config.js"),
+        ("frontend/.env", "./frontend/.env"),
+        ("frontend/craco.config.js", "./frontend/craco.config.js"),
+        ("frontend/components.json", "./frontend/components.json"),
+        ("frontend/jsconfig.json", "./frontend/jsconfig.json"),
+        ("frontend/public/index.html", "./frontend/public/index.html"),
         
         # Frontend - Source
-        ("frontend/src/index.js", "/app/frontend/src/index.js"),
-        ("frontend/src/App.js", "/app/frontend/src/App.js"),
-        ("frontend/src/App.css", "/app/frontend/src/App.css"),
-        ("frontend/src/index.css", "/app/frontend/src/index.css"),
+        ("frontend/src/index.js", "./frontend/src/index.js"),
+        ("frontend/src/App.js", "./frontend/src/App.js"),
+        ("frontend/src/App.css", "./frontend/src/App.css"),
+        ("frontend/src/index.css", "./frontend/src/index.css"),
         
         # Frontend - Hooks & Utils
-        ("frontend/src/hooks/use-toast.js", "/app/frontend/src/hooks/use-toast.js"),
-        ("frontend/src/lib/utils.js", "/app/frontend/src/lib/utils.js"),
+        ("frontend/src/hooks/use-toast.js", "./frontend/src/hooks/use-toast.js"),
+        ("frontend/src/lib/utils.js", "./frontend/src/lib/utils.js"),
         
         # Frontend - Components
-        ("frontend/src/components/MobileShell.js", "/app/frontend/src/components/MobileShell.js"),
-        ("frontend/src/components/BottomNavigation.js", "/app/frontend/src/components/BottomNavigation.js"),
+        ("frontend/src/components/MobileShell.js", "./frontend/src/components/MobileShell.js"),
+        ("frontend/src/components/BottomNavigation.js", "./frontend/src/components/BottomNavigation.js"),
         
         # Frontend - Pages (TODAS AS PÁGINAS)
-        ("frontend/src/pages/Login.js", "/app/frontend/src/pages/Login.js"),
-        ("frontend/src/pages/Dashboard.js", "/app/frontend/src/pages/Dashboard.js"),
-        ("frontend/src/pages/TicketConfig.js", "/app/frontend/src/pages/TicketConfig.js"),
-        ("frontend/src/pages/CargoConfig.js", "/app/frontend/src/pages/CargoConfig.js"),
-        ("frontend/src/pages/SaldoManager.js", "/app/frontend/src/pages/SaldoManager.js"),
-        ("frontend/src/pages/PaymentConfig.js", "/app/frontend/src/pages/PaymentConfig.js"),
-        ("frontend/src/pages/EntregaLogs.js", "/app/frontend/src/pages/EntregaLogs.js"),
-        ("frontend/src/pages/BotConfig.js", "/app/frontend/src/pages/BotConfig.js"),
-        ("frontend/src/pages/ProjectDownload.js", "/app/frontend/src/pages/ProjectDownload.js"),
+        ("frontend/src/pages/Login.js", "./frontend/src/pages/Login.js"),
+        ("frontend/src/pages/Dashboard.js", "./frontend/src/pages/Dashboard.js"),
+        ("frontend/src/pages/TicketConfig.js", "./frontend/src/pages/TicketConfig.js"),
+        ("frontend/src/pages/CargoConfig.js", "./frontend/src/pages/CargoConfig.js"),
+        ("frontend/src/pages/SaldoManager.js", "./frontend/src/pages/SaldoManager.js"),
+        ("frontend/src/pages/PaymentConfig.js", "./frontend/src/pages/PaymentConfig.js"),
+        ("frontend/src/pages/EntregaLogs.js", "./frontend/src/pages/EntregaLogs.js"),
+        ("frontend/src/pages/BotConfig.js", "./frontend/src/pages/BotConfig.js"),
+        ("frontend/src/pages/ProjectDownload.js", "./frontend/src/pages/ProjectDownload.js"),
         
         # NOVAS PÁGINAS
-        ("frontend/src/pages/BlacklistManager.js", "/app/frontend/src/pages/BlacklistManager.js"),
-        ("frontend/src/pages/CouponManager.js", "/app/frontend/src/pages/CouponManager.js"),
-        ("frontend/src/pages/RankingUsers.js", "/app/frontend/src/pages/RankingUsers.js"),
-        ("frontend/src/pages/WebhookConfig.js", "/app/frontend/src/pages/WebhookConfig.js"),
-        ("frontend/src/pages/BackupManager.js", "/app/frontend/src/pages/BackupManager.js"),
-        ("frontend/src/pages/ActionLogs.js", "/app/frontend/src/pages/ActionLogs.js"),
-        ("frontend/src/pages/SystemConfig.js", "/app/frontend/src/pages/SystemConfig.js"),
-        ("frontend/src/pages/AdvancedAnalytics.js", "/app/frontend/src/pages/AdvancedAnalytics.js"),
+        ("frontend/src/pages/BlacklistManager.js", "./frontend/src/pages/BlacklistManager.js"),
+        ("frontend/src/pages/CouponManager.js", "./frontend/src/pages/CouponManager.js"),
+        ("frontend/src/pages/RankingUsers.js", "./frontend/src/pages/RankingUsers.js"),
+        ("frontend/src/pages/WebhookConfig.js", "./frontend/src/pages/WebhookConfig.js"),
+        ("frontend/src/pages/BackupManager.js", "./frontend/src/pages/BackupManager.js"),
+        ("frontend/src/pages/ActionLogs.js", "./frontend/src/pages/ActionLogs.js"),
+        ("frontend/src/pages/SystemConfig.js", "./frontend/src/pages/SystemConfig.js"),
+        ("frontend/src/pages/AdvancedAnalytics.js", "./frontend/src/pages/AdvancedAnalytics.js"),
         
         # Database (EXPANDIDO)
-        ("DataBaseJson/config.json", "/app/DataBaseJson/config.json"),
-        ("DataBaseJson/saldo.json", "/app/DataBaseJson/saldo.json"),
-        ("DataBaseJson/entrega.json", "/app/DataBaseJson/entrega.json"),
-        ("DataBaseJson/historico.json", "/app/DataBaseJson/historico.json"),
-        ("DataBaseJson/painel.json", "/app/DataBaseJson/painel.json"),
-        ("DataBaseJson/blacklist.json", "/app/DataBaseJson/blacklist.json"),
-        ("DataBaseJson/coupons.json", "/app/DataBaseJson/coupons.json"),
-        ("DataBaseJson/webhooks.json", "/app/DataBaseJson/webhooks.json"),
-        ("DataBaseJson/action_logs.json", "/app/DataBaseJson/action_logs.json"),
-        ("DataBaseJson/system_config.json", "/app/DataBaseJson/system_config.json"),
+        ("DataBaseJson/config.json", "./DataBaseJson/config.json"),
+        ("DataBaseJson/saldo.json", "./DataBaseJson/saldo.json"),
+        ("DataBaseJson/entrega.json", "./DataBaseJson/entrega.json"),
+        ("DataBaseJson/historico.json", "./DataBaseJson/historico.json"),
+        ("DataBaseJson/painel.json", "./DataBaseJson/painel.json"),
+        ("DataBaseJson/blacklist.json", "./DataBaseJson/blacklist.json"),
+        ("DataBaseJson/coupons.json", "./DataBaseJson/coupons.json"),
+        ("DataBaseJson/webhooks.json", "./DataBaseJson/webhooks.json"),
+        ("DataBaseJson/action_logs.json", "./DataBaseJson/action_logs.json"),
+        ("DataBaseJson/system_config.json", "./DataBaseJson/system_config.json"),
         
         # Root files
-        ("README.md", "/app/README.md"),
-        (".gitignore", "/app/.gitignore"),
-        ("config.json", "/app/config.json"),
-        ("design_guidelines.json", "/app/design_guidelines.json"),
-        ("index.js", "/app/index.js"),
+        ("README.md", "./README.md"),
+        (".gitignore", "./.gitignore"),
+        ("config.json", "./config.json"),
+        ("design_guidelines.json", "./design_guidelines.json"),
+        ("index.js", "./index.js"),
     ]
     
     # UI Components (todos)
@@ -832,7 +832,7 @@ async def download_project(current_user: str = Depends(verify_token)):
     ]
     
     for component in ui_components:
-        files_to_include.append((f"frontend/src/components/ui/{component}", f"/app/frontend/src/components/ui/{component}"))
+        files_to_include.append((f"frontend/src/components/ui/{component}", f"./frontend/src/components/ui/{component}"))
     
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
         # Adicionar arquivos ao ZIP
