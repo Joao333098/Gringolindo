@@ -101,6 +101,14 @@ class SystemConfig(BaseModel):
     auto_backup: bool = True
     backup_intervalo_horas: int = 24
 
+class GratianConfig(BaseModel):
+    api_key: str
+    bot_app_id: Optional[str] = None
+
+class GratianBotDeploy(BaseModel):
+    app_id: Optional[str] = None
+    action: str  # 'create', 'deploy', 'start', 'stop', 'restart'
+
 # Authentication functions
 def hash_password(password: str) -> str:
     return hashlib.sha256(f"{password}_VOVO_SALT".encode()).hexdigest()
@@ -868,6 +876,147 @@ async def remove_saldo(saldo_data: SaldoRemove, current_user: str = Depends(veri
         "message": f"Saldo removido com sucesso",
         "novo_saldo": user["saldo"]
     }
+
+# 7.10. Gerenciamento Gratian.pro (Bot Discord Remoto)
+@app.get("/api/gratian/config")
+async def get_gratian_config(current_user: str = Depends(verify_token)):
+    """Obtém configuração do Gratian.pro"""
+    config = read_json_file("./DataBaseJson/config.json")
+    return {
+        "api_key": config.get("gratian_api_key", ""),
+        "bot_app_id": config.get("gratian_bot_app_id", ""),
+        "configured": bool(config.get("gratian_api_key"))
+    }
+
+@app.post("/api/gratian/config")
+async def update_gratian_config(gratian_config: GratianConfig, current_user: str = Depends(verify_token)):
+    """Atualiza configuração do Gratian.pro"""
+    config = read_json_file("./DataBaseJson/config.json")
+    config["gratian_api_key"] = gratian_config.api_key
+    if gratian_config.bot_app_id:
+        config["gratian_bot_app_id"] = gratian_config.bot_app_id
+    config["atualizado_em"] = datetime.now(timezone.utc).isoformat()
+    
+    write_json_file("./DataBaseJson/config.json", config)
+    log_action("gratian_config_updated")
+    
+    return {"message": "Configuração do Gratian.pro atualizada com sucesso"}
+
+@app.get("/api/gratian/bot/status")
+async def get_gratian_bot_status(current_user: str = Depends(verify_token)):
+    """Obtém status do bot no Gratian.pro"""
+    from gratian_manager import get_gratian_manager, get_bot_app_id
+    
+    manager = get_gratian_manager()
+    if not manager:
+        return {
+            "success": False,
+            "message": "API Key do Gratian.pro não configurada"
+        }
+    
+    app_id = get_bot_app_id()
+    if not app_id:
+        return {
+            "success": False,
+            "message": "App ID do bot não configurado"
+        }
+    
+    status = manager.get_app_status(app_id)
+    return status
+
+@app.get("/api/gratian/bot/logs")
+async def get_gratian_bot_logs(current_user: str = Depends(verify_token)):
+    """Obtém logs do bot no Gratian.pro"""
+    from gratian_manager import get_gratian_manager, get_bot_app_id
+    
+    manager = get_gratian_manager()
+    if not manager:
+        return {
+            "success": False,
+            "message": "API Key do Gratian.pro não configurada"
+        }
+    
+    app_id = get_bot_app_id()
+    if not app_id:
+        return {
+            "success": False,
+            "message": "App ID do bot não configurado"
+        }
+    
+    logs = manager.get_app_logs(app_id)
+    return logs
+
+@app.post("/api/gratian/bot/deploy")
+async def deploy_gratian_bot(deploy_data: GratianBotDeploy, current_user: str = Depends(verify_token)):
+    """Gerencia bot no Gratian.pro (create, deploy, start, stop, restart)"""
+    from gratian_manager import get_gratian_manager, get_bot_app_id
+    import tempfile
+    
+    manager = get_gratian_manager()
+    if not manager:
+        return {
+            "success": False,
+            "message": "API Key do Gratian.pro não configurada"
+        }
+    
+    action = deploy_data.action
+    app_id = deploy_data.app_id or get_bot_app_id()
+    
+    # Ações que precisam de App ID
+    if action in ['deploy', 'start', 'stop', 'restart'] and not app_id:
+        return {
+            "success": False,
+            "message": "App ID do bot não configurado"
+        }
+    
+    # Criar ZIP do bot
+    if action in ['create', 'deploy']:
+        with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
+            zip_path = tmp.name
+            bot_dir = Path(__file__).parent.parent
+            manager.create_bot_zip(str(bot_dir), zip_path)
+    
+    # Executar ação
+    if action == 'create':
+        result = manager.create_app(
+            zip_path=zip_path,
+            name="Gringolindo Bot Discord",
+            memory=512,
+            disk=1024,
+            ports="3000",
+            primary="3000",
+            image="node:18",
+            cpu=50
+        )
+        
+        # Salvar App ID se criado com sucesso
+        if result.get('success') and result.get('data', {}).get('appId'):
+            config = read_json_file("./DataBaseJson/config.json")
+            config["gratian_bot_app_id"] = result['data']['appId']
+            write_json_file("./DataBaseJson/config.json", config)
+        
+        os.unlink(zip_path)
+        return result
+    
+    elif action == 'deploy':
+        result = manager.deploy_app(app_id, zip_path)
+        os.unlink(zip_path)
+        return result
+    
+    elif action == 'start':
+        return manager.start_app(app_id)
+    
+    elif action == 'stop':
+        return manager.stop_app(app_id)
+    
+    elif action == 'restart':
+        return manager.restart_app(app_id)
+    
+    else:
+        return {
+            "success": False,
+            "message": f"Ação inválida: {action}"
+        }
 
 # 8. Estatísticas Avançadas
 @app.get("/api/analytics/advanced")

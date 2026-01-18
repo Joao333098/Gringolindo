@@ -10,6 +10,7 @@ import PaymentConfig from './pages/PaymentConfig';
 import EntregaLogs from './pages/EntregaLogs';
 import BotConfig from './pages/BotConfig';
 import ProjectDownload from './pages/ProjectDownload';
+import GratianManager from './pages/GratianManager';
 import MobileShell from './components/MobileShell';
 import './App.css';
 
@@ -68,6 +69,7 @@ function App() {
               <Route path="/entregas" element={<EntregaLogs />} />
               <Route path="/bot" element={<BotConfig />} />
               <Route path="/download" element={<ProjectDownload />} />
+              <Route path="/gratian" element={<GratianManager />} />
             </Routes>
           </MobileShell>
         )}
