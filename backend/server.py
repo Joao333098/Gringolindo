@@ -18,6 +18,8 @@ from fastapi.responses import StreamingResponse
 import secrets
 import string
 import shutil
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 app = FastAPI(title="Discord Bot Admin Panel")
 
@@ -373,8 +375,8 @@ def restart_discord_bot() -> bool:
         return False
 
 # ROTAS EXISTENTES (mantidas)
-@app.get("/")
-async def root():
+@app.get("/api/health")
+async def health_check():
     return {
         "message": "Discord Bot Admin Panel API is running",
         "docs_url": "/docs",
@@ -1033,6 +1035,17 @@ Enjoy! 🎉"""
 
 # Outras rotas existentes continuam...
 # (todas as rotas originais do sistema)
+
+# Serve static files from React build
+if os.path.exists("../frontend/build"):
+    app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="static")
+
+# Catch-all route for SPA client-side routing
+@app.exception_handler(404)
+async def custom_404_handler(request, exc):
+    if os.path.exists("../frontend/build/index.html"):
+        return FileResponse("../frontend/build/index.html")
+    return {"detail": "Not Found"}
 
 if __name__ == "__main__":
     import uvicorn
