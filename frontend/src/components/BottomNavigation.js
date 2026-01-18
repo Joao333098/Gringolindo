@@ -7,7 +7,8 @@ import {
   DollarSign, 
   Package, 
   Bot,
-  Download
+  Download,
+  Globe
 } from 'lucide-react';
 
 const BottomNavigation = () => {
@@ -20,6 +21,7 @@ const BottomNavigation = () => {
     { path: '/bot', icon: Bot, label: 'Bot' },
     { path: '/payments', icon: Package, label: 'Pay' },
     { path: '/download', icon: Download, label: 'ZIP' },
+    { path: '/gratian', icon: Globe, label: 'Gratian' },
   ];
   
   return (

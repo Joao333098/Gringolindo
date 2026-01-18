@@ -25,6 +25,8 @@ const MobileShell = ({ children }) => {
         return 'Config Bot';
       case '/download':
         return 'Download ZIP';
+      case '/gratian':
+        return 'Gerenciador Gratian';
       default:
         return 'Sistema E1';
     }
