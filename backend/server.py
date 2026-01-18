@@ -699,6 +699,176 @@ async def update_system_config(request: SystemConfig, current_user: str = Depend
     
     return {"message": "Configuração do sistema atualizada"}
 
+# 7.5. Configuração do Bot Discord
+@app.get("/api/config/bot")
+async def get_bot_config(current_user: str = Depends(verify_token)):
+    """Obtém a configuração do bot Discord"""
+    config = read_json_file("./DataBaseJson/config.json")
+    return {
+        "token": config.get("token", ""),
+        "status": "unknown"  # Status real viria do bot se estivesse rodando
+    }
+
+@app.post("/api/config/bot")
+async def update_bot_config(bot_config: BotTokenConfig, current_user: str = Depends(verify_token)):
+    """Atualiza o token do bot Discord"""
+    config = read_json_file("./DataBaseJson/config.json")
+    config["token"] = bot_config.token
+    config["atualizado_em"] = datetime.now(timezone.utc).isoformat()
+    
+    write_json_file("./DataBaseJson/config.json", config)
+    log_action("bot_token_updated", details={"updated_at": config["atualizado_em"]})
+    
+    return {
+        "message": "Token do bot atualizado com sucesso",
+        "status": "Token salvo. Reinicie o bot para aplicar as alterações."
+    }
+
+@app.get("/api/bot/status")
+async def get_bot_status(current_user: str = Depends(verify_token)):
+    """Obtém o status do bot Discord"""
+    # Como o bot não está rodando no backend Python, retornamos status genérico
+    config = read_json_file("./DataBaseJson/config.json")
+    has_token = bool(config.get("token", ""))
+    
+    return {
+        "status": "disconnected" if not has_token else "unknown",
+        "servers": 0,
+        "message": "Bot Discord offline - Verifique a configuração" if not has_token else "Status desconhecido"
+    }
+
+@app.post("/api/bot/restart")
+async def restart_bot(current_user: str = Depends(verify_token)):
+    """Reinicia o bot Discord (placeholder - bot não roda no backend Python)"""
+    config = read_json_file("./DataBaseJson/config.json")
+    has_token = bool(config.get("token", ""))
+    
+    if not has_token:
+        return {
+            "success": False,
+            "message": "Configure o token do bot antes de reiniciar"
+        }
+    
+    log_action("bot_restart_requested")
+    
+    return {
+        "success": True,
+        "message": "Solicitação de reinicialização enviada. O bot Discord deve ser gerenciado separadamente."
+    }
+
+# 7.6. Configuração de Cargos
+@app.get("/api/config/cargos")
+async def get_cargo_config(current_user: str = Depends(verify_token)):
+    """Obtém a configuração de cargos do Discord"""
+    config = read_json_file("./DataBaseJson/config.json")
+    return {
+        "cliente_id": config.get("cliente_id", ""),
+        "membro_id": config.get("membro_id", "")
+    }
+
+@app.post("/api/config/cargos")
+async def update_cargo_config(cargo_config: CargoConfig, current_user: str = Depends(verify_token)):
+    """Atualiza a configuração de cargos do Discord"""
+    config = read_json_file("./DataBaseJson/config.json")
+    config["cliente_id"] = cargo_config.cliente_id
+    config["membro_id"] = cargo_config.membro_id
+    config["atualizado_em"] = datetime.now(timezone.utc).isoformat()
+    
+    write_json_file("./DataBaseJson/config.json", config)
+    log_action("cargo_config_updated", details={"cliente_id": cargo_config.cliente_id, "membro_id": cargo_config.membro_id})
+    
+    return {"message": "Configuração de cargos atualizada com sucesso"}
+
+# 7.7. Configuração de Pagamentos
+@app.get("/api/config/payments")
+async def get_payment_config(current_user: str = Depends(verify_token)):
+    """Obtém a configuração de pagamentos"""
+    config = read_json_file("./DataBaseJson/config.json")
+    return {
+        "mp_token": config.get("mp_token", ""),
+        "sms_api_key": config.get("sms_api_key", "")
+    }
+
+@app.post("/api/config/payments")
+async def update_payment_config(payment_config: PaymentConfig, current_user: str = Depends(verify_token)):
+    """Atualiza a configuração de pagamentos"""
+    config = read_json_file("./DataBaseJson/config.json")
+    if payment_config.mp_token:
+        config["mp_token"] = payment_config.mp_token
+    if payment_config.sms_api_key:
+        config["sms_api_key"] = payment_config.sms_api_key
+    config["atualizado_em"] = datetime.now(timezone.utc).isoformat()
+    
+    write_json_file("./DataBaseJson/config.json", config)
+    log_action("payment_config_updated")
+    
+    return {"message": "Configuração de pagamentos atualizada com sucesso"}
+
+# 7.8. Configuração de Ticket (Alias para tickets/config)
+@app.get("/api/config/ticket")
+async def get_ticket_config_alias(current_user: str = Depends(verify_token)):
+    """Alias para /api/tickets/config"""
+    return await get_ticket_config(current_user)
+
+@app.post("/api/config/ticket")
+async def update_ticket_config_alias(ticket_config: TicketConfig, current_user: str = Depends(verify_token)):
+    """Alias para /api/tickets/config"""
+    return await update_ticket_config(ticket_config, current_user)
+
+# 7.9. Gerenciamento de Saldo
+@app.post("/api/saldo/add")
+async def add_saldo(saldo_data: SaldoAdd, current_user: str = Depends(verify_token)):
+    """Adiciona saldo a um usuário"""
+    users = read_json_file("./DataBaseJson/users.json")
+    
+    user = next((u for u in users.get("users", []) if u["id"] == saldo_data.user_id), None)
+    if not user:
+        return {"success": False, "message": "Usuário não encontrado"}
+    
+    user["saldo"] = user.get("saldo", 0) + saldo_data.valor
+    write_json_file("./DataBaseJson/users.json", users)
+    
+    log_action("saldo_added", details={
+        "user_id": saldo_data.user_id,
+        "valor": saldo_data.valor,
+        "descricao": saldo_data.descricao,
+        "novo_saldo": user["saldo"]
+    })
+    
+    return {
+        "success": True,
+        "message": f"Saldo adicionado com sucesso",
+        "novo_saldo": user["saldo"]
+    }
+
+@app.post("/api/saldo/remove")
+async def remove_saldo(saldo_data: SaldoRemove, current_user: str = Depends(verify_token)):
+    """Remove saldo de um usuário"""
+    users = read_json_file("./DataBaseJson/users.json")
+    
+    user = next((u for u in users.get("users", []) if u["id"] == saldo_data.user_id), None)
+    if not user:
+        return {"success": False, "message": "Usuário não encontrado"}
+    
+    if user.get("saldo", 0) < saldo_data.valor:
+        return {"success": False, "message": "Saldo insuficiente"}
+    
+    user["saldo"] = user.get("saldo", 0) - saldo_data.valor
+    write_json_file("./DataBaseJson/users.json", users)
+    
+    log_action("saldo_removed", details={
+        "user_id": saldo_data.user_id,
+        "valor": saldo_data.valor,
+        "motivo": saldo_data.motivo,
+        "novo_saldo": user["saldo"]
+    })
+    
+    return {
+        "success": True,
+        "message": f"Saldo removido com sucesso",
+        "novo_saldo": user["saldo"]
+    }
+
 # 8. Estatísticas Avançadas
 @app.get("/api/analytics/advanced")
 async def get_advanced_analytics(current_user: str = Depends(verify_token)):
