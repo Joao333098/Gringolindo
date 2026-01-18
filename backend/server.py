@@ -374,6 +374,21 @@ def restart_discord_bot() -> bool:
 
 # ROTAS EXISTENTES (mantidas)
 
+# Rota raiz
+@app.get("/")
+async def root():
+    """Página inicial da API"""
+    return {
+        "message": "🚀 Gringolindo Admin Panel API",
+        "version": "2.0",
+        "status": "online",
+        "endpoints": {
+            "docs": "/docs",
+            "health": "/health",
+            "login": "/api/auth/login"
+        }
+    }
+
 # Health check para Docker/Kubernetes
 @app.get("/health")
 async def health_check():
