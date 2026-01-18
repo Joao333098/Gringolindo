@@ -18,6 +18,8 @@ from fastapi.responses import StreamingResponse
 import secrets
 import string
 import shutil
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 app = FastAPI(title="Discord Bot Admin Panel")
 
@@ -373,6 +375,14 @@ def restart_discord_bot() -> bool:
         return False
 
 # ROTAS EXISTENTES (mantidas)
+@app.get("/api/health")
+async def health_check():
+    return {
+        "message": "Discord Bot Admin Panel API is running",
+        "docs_url": "/docs",
+        "status": "online"
+    }
+
 @app.post("/api/auth/login")
 async def login(request: LoginRequest):
     if not verify_credentials(request.username, request.password):
@@ -571,6 +581,48 @@ async def get_ranking(current_user: str = Depends(verify_token)):
             user["avatar_url"] = user_info["avatar_url"]
     
     return {"ranking": ranking[:50]}  # Top 50
+
+@app.get("/api/users/with-balance")
+async def get_users_with_balance(current_user: str = Depends(verify_token)):
+    saldo_data = read_json_file("/app/DataBaseJson/saldo.json")
+    config = read_json_file("/app/config.json")
+    bot_token = config.get("token", "")
+
+    users = []
+    for user_id, balance in saldo_data.items():
+        try:
+            balance = float(balance)
+        except:
+            balance = 0.0
+
+        if balance > 0:
+            user_entry = {
+                "user_id": user_id,
+                "balance": balance,
+                "username": "Usuário",
+                "discriminator": "0000",
+                "avatar_url": "https://cdn.discordapp.com/embed/avatars/0.png"
+            }
+
+            # Tentar buscar info do Discord
+            if bot_token:
+                try:
+                    user_info = await get_discord_user_info(user_id, bot_token)
+                    user_entry.update({
+                        "username": user_info.get("username", "Usuário"),
+                        "discriminator": user_info.get("discriminator", "0000"),
+                        "avatar_url": user_info.get("avatar_url", "https://cdn.discordapp.com/embed/avatars/0.png"),
+                        "global_name": user_info.get("global_name")
+                    })
+                except:
+                    pass
+
+            users.append(user_entry)
+
+    # Ordenar por saldo decrescente
+    users.sort(key=lambda x: x["balance"], reverse=True)
+
+    return {"users": users}
 
 # 4. Sistema de Webhooks
 @app.get("/api/webhooks")
@@ -887,7 +939,7 @@ yarn start
 ## 🔐 Acesso
 - **Usuário:** vovo
 - **Senha:** 2210DORRY90
-- **Backend:** http://localhost:8001
+- **Backend:** http://localhost:27687
 - **Frontend:** http://localhost:3000
 
 ## 📱 Páginas Disponíveis
@@ -984,6 +1036,17 @@ Enjoy! 🎉"""
 # Outras rotas existentes continuam...
 # (todas as rotas originais do sistema)
 
+# Serve static files from React build
+if os.path.exists("../frontend/build"):
+    app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="static")
+
+# Catch-all route for SPA client-side routing
+@app.exception_handler(404)
+async def custom_404_handler(request, exc):
+    if os.path.exists("../frontend/build/index.html"):
+        return FileResponse("../frontend/build/index.html")
+    return {"detail": "Not Found"}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=27687)
