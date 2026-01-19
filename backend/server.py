@@ -898,13 +898,20 @@ async def get_gratian_config(current_user: str = Depends(verify_token)):
 @app.post("/api/gratian/config")
 async def update_gratian_config(gratian_config: GratianConfig, current_user: str = Depends(verify_token)):
     """Atualiza configuração do Gratian.pro"""
-    config = read_json_file("./DataBaseJson/config.json")
+    # Garantir que o diretório existe
+    os.makedirs("./DataBaseJson", exist_ok=True)
+    
+    config_path = "./DataBaseJson/config.json"
+    config = read_json_file(config_path)
+    
+    # Atualizar campos
     config["gratian_api_key"] = gratian_config.api_key
     if gratian_config.bot_app_id:
         config["gratian_bot_app_id"] = gratian_config.bot_app_id
     config["atualizado_em"] = datetime.now(timezone.utc).isoformat()
     
-    write_json_file("./DataBaseJson/config.json", config)
+    # Salvar
+    write_json_file(config_path, config)
     log_action("gratian_config_updated")
     
     return {"message": "Configuração do Gratian.pro atualizada com sucesso"}

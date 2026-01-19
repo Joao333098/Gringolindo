@@ -20,8 +20,8 @@ const BottomNavigation = () => {
     { path: '/saldo', icon: DollarSign, label: 'Saldo' },
     { path: '/bot', icon: Bot, label: 'Bot' },
     { path: '/payments', icon: Package, label: 'Pay' },
+    { path: '/gratian', icon: Globe, label: 'Host' },
     { path: '/download', icon: Download, label: 'ZIP' },
-    { path: '/gratian', icon: Globe, label: 'Gratian' },
   ];
   
   return (

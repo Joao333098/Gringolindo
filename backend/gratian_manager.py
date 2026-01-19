@@ -271,3 +271,99 @@ def get_bot_app_id() -> Optional[str]:
     
     config = read_json_file("./DataBaseJson/config.json")
     return config.get("gratian_bot_app_id")
+
+if __name__ == "__main__":
+    import argparse
+    import sys
+    from datetime import datetime
+
+    parser = argparse.ArgumentParser(description="Gratian.pro Deploy Manager")
+    parser.add_argument("action", choices=["create", "deploy", "status", "logs", "start", "stop", "restart"], help="Ação a realizar")
+    parser.add_argument("--name", help="Nome da aplicação (para create)")
+    parser.add_argument("--port", default="3000", help="Porta da aplicação (padrão: 3000)")
+    parser.add_argument("--key", help="API Key do Gratian.pro")
+    parser.add_argument("--id", help="App ID da aplicação")
+
+    args = parser.parse_args()
+
+    # Tentar obter API Key do config.json se não fornecida
+    api_key = args.key
+    if not api_key:
+        try:
+            with open("./DataBaseJson/config.json", "r") as f:
+                config = json.load(f)
+                api_key = config.get("gratian_api_key")
+        except:
+            pass
+
+    if not api_key:
+        print("❌ Erro: API Key não fornecida e não encontrada no config.json")
+        sys.exit(1)
+
+    manager = GratianManager(api_key)
+    app_id = args.id
+    
+    # Tentar obter App ID do arquivo local se não fornecido
+    if not app_id:
+        if os.path.exists(".gratian_app_id"):
+            with open(".gratian_app_id", "r") as f:
+                app_id = f.read().strip()
+
+    if args.action == "create":
+        if not args.name:
+            print("❌ Erro: Nome da aplicação é obrigatório para 'create'")
+            sys.exit(1)
+        
+        print(f"🚀 Criando aplicação: {args.name}")
+        zip_name = f"/tmp/bot_deploy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        manager.create_bot_zip("..", zip_name)
+        
+        result = manager.create_app(zip_name, args.name, ports=args.port, primary=args.port)
+        if result.get("id"):
+            print(f"✅ Aplicação criada com sucesso! ID: {result['id']}")
+            with open(".gratian_app_id", "w") as f:
+                f.write(result["id"])
+        else:
+            print(f"❌ Erro ao criar aplicação: {result}")
+
+    elif args.action == "deploy":
+        if not app_id:
+            print("❌ Erro: App ID é obrigatório para 'deploy'")
+            sys.exit(1)
+        
+        print(f"🚀 Fazendo deploy na aplicação: {app_id}")
+        zip_name = f"/tmp/bot_deploy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        manager.create_bot_zip("..", zip_name)
+        
+        result = manager.deploy_app(app_id, zip_name)
+        print(f"✅ Resultado do deploy: {result}")
+
+    elif args.action == "status":
+        if not app_id:
+            print("❌ Erro: App ID é obrigatório para 'status'")
+            sys.exit(1)
+        
+        result = manager.get_app_status(app_id)
+        print(json.dumps(result, indent=2))
+
+    elif args.action == "logs":
+        if not app_id:
+            print("❌ Erro: App ID é obrigatório para 'logs'")
+            sys.exit(1)
+        
+        result = manager.get_app_logs(app_id)
+        print(result.get("logs", "Sem logs disponíveis"))
+
+    elif args.action in ["start", "stop", "restart"]:
+        if not app_id:
+            print(f"❌ Erro: App ID é obrigatório para '{args.action}'")
+            sys.exit(1)
+        
+        action_map = {
+            "start": manager.start_app,
+            "stop": manager.stop_app,
+            "restart": manager.restart_app
+        }
+        
+        result = action_map[args.action](app_id)
+        print(f"✅ Resultado da ação {args.action}: {result}")
