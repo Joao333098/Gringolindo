@@ -1,3 +1,36 @@
 {
-  "logs": []
+  "logs": [
+    {
+      "timestamp": "2026-01-18T19:06:14.507366+00:00",
+      "action": "user_login",
+      "user_id": null,
+      "details": {
+        "username": "vovo"
+      },
+      "id": "0cd7d9a0-d1e4-463b-8f36-fadbc3ea5f17"
+    },
+    {
+      "timestamp": "2026-01-18T19:06:20.438702+00:00",
+      "action": "user_login",
+      "user_id": null,
+      "details": {
+        "username": "vovo"
+      },
+      "id": "6fe28fa9-eb91-43e0-b85d-0a2909e497a3"
+    },
+    {
+      "timestamp": "2026-01-18T19:06:26.409695+00:00",
+      "action": "gratian_config_updated",
+      "user_id": null,
+      "details": {},
+      "id": "be3a2a92-341d-4f0f-9a03-d9c9d8e3607e"
+    },
+    {
+      "timestamp": "2026-01-18T19:06:56.826675+00:00",
+      "action": "gratian_config_updated",
+      "user_id": null,
+      "details": {},
+      "id": "beb09caa-d150-406b-8f27-9844929d35f3"
+    }
+  ]
 }
