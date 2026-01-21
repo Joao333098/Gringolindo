@@ -1,90 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from './components/ui/sonner';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import MobileLayout from './layouts/MobileLayout';
+import DesktopLayout from './layouts/DesktopLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import TicketConfig from './pages/TicketConfig';
-import CargoConfig from './pages/CargoConfig';
-import SaldoManager from './pages/SaldoManager';
-import PaymentConfig from './pages/PaymentConfig';
-import EntregaLogs from './pages/EntregaLogs';
-import BotConfig from './pages/BotConfig';
-import ProjectDownload from './pages/ProjectDownload';
-import GratianManager from './pages/GratianManager';
-import MobileShell from './components/MobileShell';
-import './App.css';
+import Store from './pages/Store';
+import ConfigEditor from './pages/Admin/ConfigEditor';
+import UserManager from './pages/Admin/UserManager';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+const PrivateRoute = ({ children }) => {
+    const token = localStorage.getItem('token');
+    const location = useLocation();
+
+    if (!token) {
+        return <Navigate to={`/login?redirect=${location.pathname}`} replace />;
+    }
+
+    return children;
+};
+
+const DeviceDetector = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      // Verificar token
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/verify`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(res => {
-        if (res.ok) {
-          setIsAuthenticated(true);
-        } else {
-          localStorage.removeItem('admin_token');
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem('admin_token');
-      })
-      .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-void flex items-center justify-center">
-        <div className="text-cyber-red font-mono animate-pulse">
-          INICIALIZANDO SISTEMA...
-        </div>
-      </div>
-    );
-  }
+  return isMobile ? <MobileLayout /> : <DesktopLayout />;
+};
 
+function App() {
   return (
-    <div className="App bg-void min-h-screen text-text-primary font-mono">
-      <Router>
-        {!isAuthenticated ? (
-          <Login onLogin={() => setIsAuthenticated(true)} />
-        ) : (
-          <MobileShell>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/ticket" element={<TicketConfig />} />
-              <Route path="/cargos" element={<CargoConfig />} />
-              <Route path="/saldo" element={<SaldoManager />} />
-              <Route path="/payments" element={<PaymentConfig />} />
-              <Route path="/entregas" element={<EntregaLogs />} />
-              <Route path="/bot" element={<BotConfig />} />
-              <Route path="/download" element={<ProjectDownload />} />
-              <Route path="/gratian" element={<GratianManager />} />
-            </Routes>
-          </MobileShell>
-        )}
-      </Router>
-      <Toaster 
-        theme="dark"
-        toastOptions={{
-          style: {
-            background: '#0A0A0A',
-            border: '1px solid #FF003C',
-            color: '#EDEDED',
-          }
-        }}
-      />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth/discord/callback" element={<Login />} />
+
+        <Route element={
+            <PrivateRoute>
+                <DeviceDetector />
+            </PrivateRoute>
+        }>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/store" element={<Store />} />
+            <Route path="/admin" element={<Navigate to="/admin/config" replace />} />
+            <Route path="/admin/config" element={<ConfigEditor />} />
+            <Route path="/admin/users" element={<UserManager />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

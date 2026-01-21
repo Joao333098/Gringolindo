@@ -1,283 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, Users, Zap, DollarSign, Activity, AlertCircle, UserCheck, Server } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useEffect, useState } from 'react';
+import { Activity, CreditCard, ShoppingBag, Users } from 'lucide-react';
+
+const StatCard = ({ title, value, icon: Icon, color = "cyber-red" }) => (
+    <div className="bg-void-surface border border-void-border p-6 rounded-xl relative overflow-hidden group">
+        <div className={`absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity text-${color}`}>
+            <Icon size={100} />
+        </div>
+        <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-2">
+                <div className={`p-2 rounded bg-${color}/10 text-${color}`}>
+                    <Icon size={20} />
+                </div>
+                <span className="text-text-secondary font-mono text-xs uppercase tracking-wider">{title}</span>
+            </div>
+            <h3 className="text-3xl font-black text-white">{value}</h3>
+        </div>
+    </div>
+);
 
 const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [usersWithBalance, setUsersWithBalance] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        balance: 0,
+        activeOrders: 0,
+        totalSpent: 0
+    });
+    const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    fetchStats();
-    fetchUsersWithBalance();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const token = localStorage.getItem('admin_token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/dashboard/stats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
         }
-      });
+    }, []);
 
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      } else {
-        toast.error('Erro ao carregar estatísticas');
-      }
-    } catch (error) {
-      toast.error('Erro de conexão');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUsersWithBalance = async () => {
-    try {
-      const token = localStorage.getItem('admin_token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/with-balance`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUsersWithBalance(data.users || []);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuários com saldo:', error);
-    }
-  };
-
-  if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-12">
-          <div className="text-cyber-red font-mono animate-pulse loading-dots">
-            CARREGANDO DADOS
-          </div>
+        <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+            {/* Welcome Section */}
+            <div className="bg-gradient-to-r from-void-highlight to-void-surface border border-void-border rounded-2xl p-8 relative overflow-hidden">
+                <div className="relative z-10">
+                    <h1 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-2">
+                        OLÁ, <span className="text-cyber-red">{user?.username || 'VISITANTE'}</span>
+                    </h1>
+                    <p className="text-text-secondary max-w-lg">
+                        Bem-vindo ao <span className="text-white font-bold">KAELI SYSTEM</span>. Seu painel de controle pessoal está pronto.
+                    </p>
+                </div>
+                <div className="absolute right-0 bottom-0 h-full w-1/3 bg-gradient-to-l from-cyber-red/10 to-transparent"></div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard title="Saldo Atual" value={`R$ ${stats.balance.toFixed(2)}`} icon={CreditCard} color="cyber-green" />
+                <StatCard title="Pedidos Ativos" value={stats.activeOrders} icon={ShoppingBag} color="cyber-yellow" />
+                <StatCard title="Total Gasto" value={`R$ ${stats.totalSpent.toFixed(2)}`} icon={Activity} color="cyber-red" />
+                <StatCard title="Nível" value="Membro" icon={Users} color="blue-500" />
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-void-surface border border-void-border rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <Activity size={20} className="text-cyber-red" />
+                    ATIVIDADE RECENTE
+                </h2>
+
+                <div className="space-y-4">
+                    <div className="text-center text-text-dim py-10 font-mono text-sm border border-dashed border-void-border rounded">
+                        NENHUMA ATIVIDADE REGISTRADA
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="space-y-6 fade-in-up">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-unbounded font-black text-cyber-red mb-2">
-          PAINEL DE CONTROLE
-        </h1>
-        <p className="text-text-secondary font-mono text-sm">
-          Sistema operacional - Monitoramento em tempo real
-        </p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="bento-grid">
-        {/* Vendas Totais */}
-        <div className="bento-item" data-testid="dashboard-stat-sales">
-          <div className="stat-card">
-            <TrendingUp className="w-8 h-8 text-cyber-red mx-auto mb-3" />
-            <div className="stat-value">{stats?.vendas_totais || 0}</div>
-            <div className="stat-label">Vendas Totais</div>
-          </div>
-        </div>
-
-        {/* Faturamento */}
-        <div className="bento-item" data-testid="dashboard-stat-revenue">
-          <div className="stat-card">
-            <DollarSign className="w-8 h-8 text-cyber-green mx-auto mb-3" />
-            <div className="stat-value">R$ {(stats?.faturamento || 0).toFixed(2)}</div>
-            <div className="stat-label">Faturamento</div>
-          </div>
-        </div>
-
-        {/* Usuários com Saldo */}
-        <div className="bento-item">
-          <div className="stat-card">
-            <UserCheck className="w-8 h-8 text-cyber-yellow mx-auto mb-3" />
-            <div className="stat-value">{stats?.usuarios_com_saldo || 0}</div>
-            <div className="stat-label">Com Saldo</div>
-          </div>
-        </div>
-
-        {/* Total de Membros Discord */}
-        <div className="bento-item">
-          <div className="stat-card">
-            <Server className="w-8 h-8 text-text-primary mx-auto mb-3" />
-            <div className="stat-value">{stats?.total_members || 0}</div>
-            <div className="stat-label">Membros Discord</div>
-          </div>
-        </div>
-
-        {/* Saldo Total do Sistema */}
-        <div className="bento-item large">
-          <div className="glass-card rounded-3xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-unbounded font-bold text-lg text-text-primary">
-                SALDO TOTAL SISTEMA
-              </h3>
-              <DollarSign className="w-6 h-6 text-cyber-green" />
-            </div>
-            <div className="text-3xl font-unbounded font-black text-cyber-green mb-2">
-              R$ {(stats?.saldo_total_sistema || 0).toFixed(2)}
-            </div>
-            <div className="text-sm font-mono text-text-secondary">
-              Somatória de todos os saldos dos usuários
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Usuários com Saldo */}
-      <div className="glass-card rounded-3xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-unbounded font-bold text-lg text-text-primary">
-            USUÁRIOS COM SALDO
-          </h3>
-          <div className="text-xs font-mono text-text-secondary">
-            {usersWithBalance.length} usuários
-          </div>
-        </div>
-        
-        {usersWithBalance.length > 0 ? (
-          <div className="space-y-3 max-h-64 overflow-y-auto">
-            {usersWithBalance.slice(0, 8).map((user, index) => (
-              <div key={user.user_id} className="flex items-center gap-3 p-3 bg-void-highlight rounded-lg">
-                <img 
-                  src={user.avatar_url} 
-                  alt={user.username}
-                  className="w-10 h-10 rounded-full border-2 border-cyber-red/30"
-                  onError={(e) => {
-                    e.target.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-mono text-text-primary truncate">
-                    {user.global_name || user.username}
-                  </div>
-                  <div className="text-xs text-text-dim font-mono">
-                    @{user.username}#{user.discriminator}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-mono font-bold text-cyber-green">
-                    R$ {user.balance.toFixed(2)}
-                  </div>
-                  <div className="text-xs text-text-dim font-mono">
-                    #{index + 1}
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {usersWithBalance.length > 8 && (
-              <div className="text-center pt-2">
-                <div className="text-xs font-mono text-text-dim">
-                  + {usersWithBalance.length - 8} usuários com saldo
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <Users className="w-12 h-12 text-text-dim mx-auto mb-4" />
-            <p className="text-text-secondary font-mono text-sm">
-              Nenhum usuário com saldo cadastrado
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Status do Sistema */}
-      <div className="glass-card rounded-3xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-unbounded font-bold text-lg text-text-primary">
-            STATUS DO SISTEMA
-          </h3>
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full animate-pulse ${
-              stats?.bot_status === 'online' ? 'bg-cyber-green' : 'bg-cyber-red'
-            }`} />
-            <span className={`font-mono text-sm ${
-              stats?.bot_status === 'online' ? 'text-cyber-green status-online' : 'text-cyber-red'
-            }`}>
-              {stats?.bot_status === 'online' ? 'OPERACIONAL' : 'OFFLINE'}
-            </span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${
-              stats?.bot_status === 'online' ? 'bg-cyber-green' : 'bg-cyber-red'
-            }`} />
-            <span className="font-mono text-text-secondary">
-              Bot Discord ({stats?.bot_guilds || 0} servers)
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-cyber-green rounded-full" />
-            <span className="font-mono text-text-secondary">Mercado Pago</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-cyber-green rounded-full" />
-            <span className="font-mono text-text-secondary">SMS24H API</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-cyber-green rounded-full" />
-            <span className="font-mono text-text-secondary">Database</span>
-          </div>
-        </div>
-
-        {stats?.bot_status !== 'online' && (
-          <div className="mt-4 p-3 bg-cyber-red/10 border border-cyber-red/30 rounded-lg">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-cyber-red" />
-              <span className="text-sm font-mono text-cyber-red">
-                Bot Discord offline - Verifique a configuração
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Ações Rápidas */}
-      <div className="glass-card rounded-3xl p-6">
-        <h3 className="font-unbounded font-bold text-lg text-text-primary mb-4">
-          AÇÕES RÁPIDAS
-        </h3>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <button 
-            className="cyber-btn py-3 px-4 rounded-xl text-xs"
-            onClick={() => {
-              fetchStats();
-              fetchUsersWithBalance();
-            }}
-            data-testid="refresh-stats-button"
-          >
-            ATUALIZAR DADOS
-          </button>
-          <button 
-            className="bg-void-highlight border border-cyber-red/30 text-cyber-red py-3 px-4 rounded-xl text-xs font-mono hover:border-cyber-red transition-colors"
-            onClick={() => {
-              if (window.confirm('Deseja realmente sair do sistema?')) {
-                localStorage.removeItem('admin_token');
-                window.location.reload();
-              }
-            }}
-          >
-            SAIR DO SISTEMA
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 export default Dashboard;
