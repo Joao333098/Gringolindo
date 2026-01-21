@@ -109,6 +109,10 @@ class GratianBotDeploy(BaseModel):
     app_id: Optional[str] = None
     action: str  # 'create', 'deploy', 'start', 'stop', 'restart'
 
+class FullConfigUpdate(BaseModel):
+    filename: str
+    content: Dict[str, Any]
+
 # Authentication functions
 def hash_password(password: str) -> str:
     return hashlib.sha256(f"{password}_VOVO_SALT".encode()).hexdigest()
@@ -437,12 +441,127 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
     
     log_action("user_login", details={"username": request.username})
-    access_token = create_access_token(data={"sub": request.username})
+    access_token = create_access_token(data={"sub": request.username, "role": "admin"})
     return {
         "access_token": access_token,
         "token_type": "bearer",
         "expires_in": JWT_EXPIRATION_HOURS * 3600
     }
+
+@app.get("/api/auth/discord/login")
+async def discord_login():
+    """Redireciona para o login do Discord"""
+    config = read_json_file("./DataBaseJson/config.json")
+    client_id = config.get("client_id")
+    redirect_uri = config.get("redirect_uri", "http://localhost:3000/auth/discord/callback")
+
+    if not client_id:
+        raise HTTPException(status_code=400, detail="Client ID não configurado")
+
+    # Escopos: identify email guilds
+    scope = "identify email guilds"
+    discord_url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
+
+    return {"url": discord_url}
+
+@app.post("/api/auth/discord/callback")
+async def discord_callback(code: str = None):
+    """Troca o código pelo token de acesso"""
+    if not code:
+        # Tentar pegar do body se vier como JSON
+        raise HTTPException(status_code=400, detail="Código não fornecido")
+
+    config = read_json_file("./DataBaseJson/config.json")
+    client_id = config.get("client_id")
+    client_secret = config.get("client_secret")
+    redirect_uri = config.get("redirect_uri", "http://localhost:3000/auth/discord/callback")
+
+    if not client_id or not client_secret:
+        raise HTTPException(status_code=500, detail="Credenciais do Discord não configuradas")
+
+    data = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': redirect_uri
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
+    try:
+        r = requests.post('https://discord.com/api/oauth2/token', data=data, headers=headers)
+        r.raise_for_status()
+        token_data = r.json()
+
+        # Obter dados do usuário
+        user_r = requests.get('https://discord.com/api/users/@me', headers={
+            'Authorization': f"Bearer {token_data['access_token']}"
+        })
+        user_r.raise_for_status()
+        user_info = user_r.json()
+
+        # Verificar se é admin (vovo) ou criar sessão de usuário comum
+        # Por enquanto, vamos dar token de acesso geral, mas com flag de admin se for o dono
+
+        username = user_info['username']
+        user_id = user_info['id']
+
+        # Salvar usuário no banco se não existir
+        users = read_json_file("./DataBaseJson/users.json")
+        if "users" not in users:
+            users["users"] = []
+
+        existing_user = next((u for u in users["users"] if u["id"] == user_id), None)
+
+        if not existing_user:
+            new_user = {
+                "id": user_id,
+                "username": username,
+                "discriminator": user_info.get('discriminator'),
+                "avatar": user_info.get('avatar'),
+                "email": user_info.get('email'),
+                "saldo": 0.0,
+                "criado_em": datetime.now(timezone.utc).isoformat(),
+                "bloqueado": False
+            }
+            users["users"].append(new_user)
+            write_json_file("./DataBaseJson/users.json", users)
+        else:
+            # Atualizar info
+            existing_user["username"] = username
+            existing_user["avatar"] = user_info.get('avatar')
+            write_json_file("./DataBaseJson/users.json", users)
+
+            if existing_user.get("bloqueado"):
+                 raise HTTPException(status_code=403, detail="Usuário bloqueado")
+
+        # Verificar Admin (simplificado por ID ou hardcoded)
+        # O user disse "vovo" é admin. Vamos assumir que se logar via discord, precisamos saber quem é o admin.
+        # Vamos permitir configurar admins no config.json
+        admins = config.get("admins", ["2210DORRY90"]) # ID ou Username
+        is_admin = user_id in admins or username == "vovo"
+
+        jwt_payload = {
+            "sub": username,
+            "id": user_id,
+            "role": "admin" if is_admin else "user",
+            "discord_token": token_data['access_token']
+        }
+
+        access_token = create_access_token(data=jwt_payload)
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": user_info,
+            "role": jwt_payload["role"]
+        }
+
+    except Exception as e:
+        print(f"Erro no login Discord: {e}")
+        raise HTTPException(status_code=400, detail=f"Falha na autenticação com Discord: {str(e)}")
 
 @app.get("/api/auth/verify")
 async def verify_auth(current_user: str = Depends(verify_token)):
@@ -1078,6 +1197,48 @@ async def get_advanced_analytics(current_user: str = Depends(verify_token)):
 
 # ROTAS EXISTENTES CONTINUAM...
 # (mantendo todas as rotas originais)
+
+# 8.5 Full Config Editor (Para o Admin "Mega")
+@app.get("/api/admin/config/files")
+async def list_config_files(current_user: str = Depends(verify_token)):
+    """Lista todos os arquivos de configuração editáveis"""
+    files = []
+    for f in os.listdir("./DataBaseJson"):
+        if f.endswith(".json"):
+            files.append(f)
+    return {"files": files}
+
+@app.get("/api/admin/config/content/{filename}")
+async def get_config_content(filename: str, current_user: str = Depends(verify_token)):
+    """Lê o conteúdo de um arquivo de configuração específico"""
+    if ".." in filename or "/" in filename:
+        raise HTTPException(status_code=400, detail="Nome de arquivo inválido")
+
+    path = f"./DataBaseJson/{filename}"
+    if not os.path.exists(path):
+         raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+
+    return read_json_file(path)
+
+@app.post("/api/admin/config/save")
+async def save_config_content(update: FullConfigUpdate, current_user: str = Depends(verify_token)):
+    """Salva o conteúdo de um arquivo de configuração"""
+    if ".." in update.filename or "/" in update.filename:
+        raise HTTPException(status_code=400, detail="Nome de arquivo inválido")
+
+    path = f"./DataBaseJson/{update.filename}"
+
+    # Backup antes de salvar
+    try:
+        if os.path.exists(path):
+            shutil.copy(path, f"{path}.bak")
+    except:
+        pass
+
+    write_json_file(path, update.content)
+    log_action("config_file_updated", details={"filename": update.filename})
+
+    return {"message": "Configuração salva com sucesso"}
 
 # 9. Configuração de Tickets
 @app.get("/api/tickets/config")
