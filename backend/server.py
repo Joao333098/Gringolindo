@@ -1114,6 +1114,110 @@ async def update_ticket_config(ticket_config: TicketConfig, current_user: str = 
     
     return {"message": "Configuração de tickets atualizada com sucesso"}
 
+# 10. Universal File System Access (JSON Only)
+@app.get("/api/fs/files")
+async def list_fs_files(current_user: str = Depends(verify_token)):
+    """List all JSON files in DataBaseJson directory"""
+    directory = "./DataBaseJson"
+    files = []
+    if os.path.exists(directory):
+        for f in os.listdir(directory):
+            if f.endswith('.json'):
+                files.append(f)
+    return {"files": files}
+
+@app.get("/api/fs/read/{filename}")
+async def read_fs_file(filename: str, current_user: str = Depends(verify_token)):
+    """Read a specific JSON file"""
+    if not filename.endswith('.json'):
+        raise HTTPException(status_code=400, detail="Only JSON files allowed")
+
+    filepath = os.path.join("./DataBaseJson", filename)
+    # Security check: ensure path is within DataBaseJson
+    if not os.path.abspath(filepath).startswith(os.path.abspath("./DataBaseJson")):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return read_json_file(filepath)
+
+@app.post("/api/fs/write/{filename}")
+async def write_fs_file(filename: str, content: Dict, current_user: str = Depends(verify_token)):
+    """Write to a specific JSON file"""
+    if not filename.endswith('.json'):
+        raise HTTPException(status_code=400, detail="Only JSON files allowed")
+
+    filepath = os.path.join("./DataBaseJson", filename)
+    # Security check
+    if not os.path.abspath(filepath).startswith(os.path.abspath("./DataBaseJson")):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    write_json_file(filepath, content)
+    log_action("fs_write", current_user, {"filename": filename})
+    return {"message": "File saved successfully"}
+
+# 11. Discord OAuth Authentication
+@app.get("/api/auth/discord")
+async def discord_auth_redirect():
+    """Redirect to Discord OAuth"""
+    config = read_json_file("./config.json")
+    client_id = config.get("discord_client_id") or os.environ.get("DISCORD_CLIENT_ID")
+    redirect_uri = config.get("discord_redirect_uri") or os.environ.get("DISCORD_REDIRECT_URI", "http://localhost:3000/auth/callback")
+
+    if not client_id:
+        # Fallback for dev mode/demo if no ID provided
+        return {"url": "/login?error=missing_client_id"}
+
+    scope = "identify email guilds"
+    url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
+    return {"url": url}
+
+@app.get("/api/auth/discord/callback")
+async def discord_auth_callback(code: str):
+    """Handle Discord Callback"""
+    config = read_json_file("./config.json")
+    client_id = config.get("discord_client_id") or os.environ.get("DISCORD_CLIENT_ID")
+    client_secret = config.get("discord_client_secret") or os.environ.get("DISCORD_CLIENT_SECRET")
+    redirect_uri = config.get("discord_redirect_uri") or os.environ.get("DISCORD_REDIRECT_URI", "http://localhost:3000/auth/callback")
+
+    if not client_id or not client_secret:
+         raise HTTPException(status_code=500, detail="Discord secrets not configured")
+
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri
+    }
+
+    headers = {"Content-Type": "application_x-www-form-urlencoded"}
+
+    # Exchange code for token
+    token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
+    if token_resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Failed to authenticate with Discord")
+
+    token_data = token_resp.json()
+    access_token = token_data["access_token"]
+
+    # Get User Info
+    user_resp = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"})
+    if user_resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Failed to fetch user info")
+
+    user_info = user_resp.json()
+    username = user_info["username"]
+    user_id = user_info["id"]
+
+    # Issue internal JWT
+    # The 'sub' will be the username
+    internal_token = create_access_token(data={"sub": username, "discord_id": user_id, "avatar": user_info.get("avatar")})
+
+    return {
+        "access_token": internal_token,
+        "token_type": "bearer",
+        "user": user_info
+    }
+
 # Rota de download atualizada com novas funcionalidades
 @app.get("/api/download/project")
 async def download_project(current_user: str = Depends(verify_token)):
